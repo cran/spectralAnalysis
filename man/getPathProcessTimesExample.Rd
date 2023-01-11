@@ -2,12 +2,13 @@
 % Please edit documentation in R/objectProcessTimes.R
 \name{getPathProcessTimesExample}
 \alias{getPathProcessTimesExample}
-\title{example path process times 
-ecport}
+\title{example path process times}
 \usage{
 getPathProcessTimesExample()
 }
+\value{
+\code{\link{ProcessTimes-class}}
+}
 \description{
-example path process times 
-ecport
+example path process times
 }

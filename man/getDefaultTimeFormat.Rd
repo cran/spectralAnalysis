@@ -8,6 +8,8 @@ getDefaultTimeFormat()
 }
 \value{
 character vector specifiying a time format
+
+character string iwth default time format
 }
 \description{
 function to get default time format in the package

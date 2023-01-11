@@ -15,45 +15,60 @@
 \alias{plot,SpectraInTime,missing-method}
 \alias{plot}
 \alias{plot.list}
-\title{SpectraInTime-class (time resolved spectra ) wavelength-time data for 1 experiment}
+\title{SpectraInTime-class}
 \usage{
 \S4method{dim}{SpectraInTime}(x)
 
 extractSummarySpecs(object, summaryFunctions = getDefaultSumFunc())
 
-\S4method{summary}{SpectraInTime}(object,
-  summaryFunctions = getDefaultSumFunc())
+\S4method{summary}{SpectraInTime}(object, summaryFunctions = getDefaultSumFunc())
 
 \S4method{show}{SummaryByWavelengths}(object)
 
-\S4method{as.data.frame}{SpectraInTime}(x, timePointsAlt = FALSE,
-  timeUnit = "seconds")
+\S4method{as.data.frame}{SpectraInTime}(x, timePointsAlt = FALSE, timeUnit = "seconds")
 
-\S4method{plot}{SpectraInTime,missing}(x, y, type = "3D",
-  timeUnit = "hours", timePointsAlt = FALSE, colors = "D")
+\S4method{plot}{SpectraInTime,missing}(
+  x,
+  y,
+  type = "3D",
+  timeUnit = "hours",
+  timePointsAlt = FALSE,
+  ylab = "Wavelength",
+  colors = "D",
+  nColors = 200,
+  limits = NULL
+)
 
-\method{plot}{list}(x, ...)
+\method{plot}{list}(x, ..., type = "line", ncol = 2)
 }
 \arguments{
 \item{x}{the object to be plotted}
 
-\item{object}{}
+\item{object}{\code{SpectraInTime-class}}
 
-\item{summaryFunctions}{a character vector of summary functions}
+\item{summaryFunctions}{character vector of summary functions}
 
 \item{timePointsAlt}{see \code{\link{getTimePoints}}}
 
-\item{timeUnit}{see \code{\link{getTimePoints}}}
+\item{timeUnit}{time unit specification in the form of a character string}
 
 \item{y}{not used, for consitency with plot method}
 
 \item{type}{character choice of plot type between:
-* \code{3D} surface plot (default)
-* \code{wavelenth} wavelength in legend, time on the axis
-* \code{time} time in legend, wavelength on the axis}
+* \code{"3D"} surface plot (default)
+* \code{"spectralAxis"} spectral axis in legend, time on the axis
+   * \code{"wavelength"} same behaviour as with \code{type} is "spectralAxis", kept for historical reasons
+* \code{"time"} time in legend, spectral values on the axis
+*  \code{"contour"} contour plot of spectra time versus spectral values}
+
+\item{ylab}{Specification y-axis label. By default this is "Wavelength", but can be different for e.g. mass spectra}
 
 \item{colors}{colorblind friendly palettes are used from the de \code{\link[viridis]{viridis_pal}} choice between code{"A"} (magna),
 code{"B"} (inferno),  \code{"C"} (plasma) and \code{"D"} the default viridis color palette}
+
+\item{nColors}{number of colours to use, only relevant if \code{type} is "contour", defaults to 200}
+
+\item{limits}{2-element numeric vector specifying the range of values onto which the color scale should be mapped (currently only relevant if \code{type} is "contour")}
 
 \item{...}{additional argument, for plotting a list of spectra one can use:
 \itemize{
@@ -61,33 +76,25 @@ code{"B"} (inferno),  \code{"C"} (plasma) and \code{"D"} the default viridis col
  \item \code{timeUnit} time unit for \code{times} default to "seconds"
  \item \code{timePointsAlt} logical value indicating whether alternative time axis should be used, defaults to \code{FALSE}
 }}
-
-\item{object}{\code{SpectraInTime-class}}
-
-\item{summaryFunctions}{character vector of summary functions}
 }
 \value{
 data.frame with first column wavelengths followed
 
 a \code{data.frame} containing spectral information in long format
+
+data.frame
 }
 \description{
-SpectraInTime-class (time resolved spectra ) wavelength-time data for 1 experiment
-
-extract summary specs from \code{\link{SpectraInTime-class}} by wavelengths over time
-
-convert to data.frame (used in visualization)
-
-Plotting methods for 'spectralAnalysis'
+Time resolved spectra for one experiment
 }
 \section{Slots}{
 
 \describe{
-\item{\code{spectra}}{matrix of spectral measurement with as rows timePoints and columns wavelengths}
+\item{\code{spectra}}{matrix of spectral measurement with as rows timePoints and columns spectral axis}
 
 \item{\code{experimentName}}{character vector with name of the experiment}
 
-\item{\code{wavelengths}}{numeric vector of wavelengths}
+\item{\code{spectralAxis}}{numeric vector of spectral values (e.g. wavelengths or mass to charge)}
 
 \item{\code{timePoints}}{of measurement in seconds}
 
@@ -103,10 +110,6 @@ Plotting methods for 'spectralAnalysis'
 }}
 
 \examples{
-  spectralExample   <-  getSpectraInTimeExample()
-  mimMaxSpec        <-  spectralAnalysis:::extractSummarySpecs( spectralExample ,
- c( "min" , "max" ) )
-
  spectralExample  <-  getSpectraInTimeExample() 
  summarySpectra   <-  summary( spectralExample )
  str( summarySpectra )
@@ -118,7 +121,7 @@ spectraFlat             <-  as.data.frame( spectra )
 
 
 ### visualization 
-  \dontrun{
+  \donttest{
   data = getSpectraInTimeExample()
   plot( x =  data , type = "3D" , timeUnit = "hours" , timePointsAlt = FALSE )
   plot( x =  data[  , r(500, 350) ] , type = "3D" ,
@@ -126,16 +129,21 @@ spectraFlat             <-  as.data.frame( spectra )
   plot( x =  data[ e( 1 , 2 , 3) , , timeUnit = "hours" ] ,
       type = "time" , timeUnit = "hours" , timePointsAlt = FALSE ) 
   plot( x =  data[ , e( seq( 200 , 400 , 50 ) ) ] , 
-     type = "wavelength" , timeUnit = "minutes" , timePointsAlt = TRUE , colors = "A" )
+     type = "spectralAxis" , timeUnit = "minutes" , timePointsAlt = TRUE , colors = "A" )
+
+  plot( x = data , type = "contour" , nColors = 200 , 
+    colors = "C" , timeUnit = "seconds", timePointsAlt = TRUE)
 }
 
-  
  ## plotting a list of spectra
     
  listOfSpectra     <-  getListOfSpectraExample()
  plot( listOfSpectra , times = 1 , timeUnit = "hours" )
  plot( listOfSpectra , times = 1 , timeUnit = "hours" , timePointsAlt = TRUE  )
  plot( listOfSpectra , times = 1:3 , timeUnit = "hours" , colors = "B" ) 
+\donttest{
+ plot( listOfSpectra , timeUnit = "hours" , colors = "C" , type = "contour" )
+}
 }
 \author{
 Adriaan Blommaert

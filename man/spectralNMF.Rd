@@ -4,8 +4,17 @@
 \alias{spectralNMF}
 \title{Perform Non-Negative Matrix factorization on spectral data}
 \usage{
-spectralNMF(object, rank, method = "PGNMF", initSpectralData = NULL,
-  nruns = 10, subsamplingFactor = 3, checkDivergence = TRUE)
+spectralNMF(
+  object,
+  rank,
+  method = "PGNMF",
+  initSpectralData = NULL,
+  nruns = 10,
+  subsamplingFactor = 1,
+  checkDivergence = TRUE,
+  maxIter = 1000,
+  includeRefs = FALSE
+)
 }
 \arguments{
 \item{object}{\code{\link{SpectraInTime-class}}}
@@ -24,12 +33,28 @@ times when random seeding is used, to avoid a suboptimal solution}
 \item{subsamplingFactor}{subsampling factor used during NMF analysis}
 
 \item{checkDivergence}{Boolean indicating whether divergence checking should be performed}
+
+\item{maxIter}{maximum number of iterations per NMF run}
+
+\item{includeRefs}{boolean, indicating whether references should be included in the input matrix for the NMF analysis}
 }
 \value{
-Scaled NMF model (in accordance with the NMF package definition)
+\code{\link{SpectraInTimeComp-class}} which includeds a scaled NMF model (in accordance with the NMF package definition)
+
+\code{\link{SpectraInTimeComp-class}}
 }
 \description{
 Perform Non-Negative Matrix factorization on spectral data
+}
+\examples{
+\donttest{
+ spectralExample    <-  getSpectraInTimeExample()
+ nmfResult          <-  spectralNMF( spectralExample , rank = 2 , subsamplingFactor = 5 )
+  nmfObject         <-  getDimensionReduction( nmfResult , type = "NMF")$NMF
+  nmfTrends         <-  t( NMF::coef( nmfObject ) )
+  matplot( nmfTrends , type = "l" , x = getTimePoints( spectralExample , timeUnit = "hours"  ),
+		 xlab = "time in hours"  )
+}
 }
 \author{
 Nicolas Sauwen

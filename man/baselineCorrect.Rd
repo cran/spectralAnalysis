@@ -5,12 +5,14 @@
 \name{baselineCorrect}
 \alias{baselineCorrect}
 \alias{baselineCorrect,SpectraInTime-method}
+\alias{baselineCorrect,SpectraInTimeComp-method}
 \title{generic function to perfom baseline correction}
 \usage{
 baselineCorrect(object, ...)
 
-\S4method{baselineCorrect}{SpectraInTime}(object, method = "modpolyfit",
-  degree = 4, ...)
+\S4method{baselineCorrect}{SpectraInTime}(object, method = "modpolyfit", degree = 4, ...)
+
+\S4method{baselineCorrect}{SpectraInTimeComp}(object, ...)
 }
 \arguments{
 \item{object}{a S4 class object}
@@ -21,6 +23,9 @@ baselineCorrect(object, ...)
 
 \item{degree}{numeric value, degree of the polynomial used only if \code{method} is code{'modpolyfit'}}
 }
+\value{
+\code{\link{SpectraInTime-class}}
+}
 \description{
 generic function to perfom baseline correction
 }
@@ -29,7 +34,6 @@ baseline correction in the wavelength domain by linking to the \code{\link[basel
 }
 \examples{
  spectralEx           <-  getSpectraInTimeExample()
- plot( spectralEx )   
  timeRange            <-  range( getTimePoints( spectralEx ) )
  timesToSelect        <-  e(  seq( timeRange[1] , timeRange[2] , length.out = 5  )   )
  baselineDefault      <-  baselineCorrect( spectralEx )
@@ -40,8 +44,11 @@ baseline correction in the wavelength domain by linking to the \code{\link[basel
  baselineLowpass         <-  baselineCorrect( spectralEx , method = "lowpass" )
 
  # visual inspection
+ \donttest{
+ plot( spectralEx )   
  plot( baselineDefault[ timesToSelect , ] , type = "time"  )
  plot( baselineHighPolynomial[ timesToSelect , ] , type = "time"  )
  plot( baselineLowpass[ timesToSelect , ] , type = "time"  ) 
+}
 
 }

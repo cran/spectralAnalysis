@@ -2,13 +2,12 @@
 % Please edit documentation in R/spectralIntegration.R
 \name{trapz}
 \alias{trapz}
-\title{integration via trapezium ruls originally from caTools package, included to avoid dependency on old package
-with correction inverse scale, should give still possitive values (taken absolute values )}
+\title{Integration via trapezium rule}
 \usage{
 trapz(x, y)
 }
 \description{
-integration via trapezium ruls originally from caTools package, included to avoid dependency on old package
+Originally from caTools package, included to avoid dependency on old package
 with correction inverse scale, should give still possitive values (taken absolute values )
 }
 \keyword{internal}

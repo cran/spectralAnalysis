@@ -15,6 +15,9 @@ getPreprocessing(object, ...)
 
 \item{...}{additional parameters}
 }
+\value{
+list with preprocessing steps
+}
 \description{
 generic function to extract \code{preprocessing}-slot
 }

@@ -15,6 +15,9 @@ getUnits(object, ...)
 
 \item{...}{additional parameters}
 }
+\value{
+list of units
+}
 \description{
 generic function to extract \code{units}-slot
 }

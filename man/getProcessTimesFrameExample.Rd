@@ -6,6 +6,9 @@
 \usage{
 getProcessTimesFrameExample()
 }
+\value{
+\code{\link{ProcessTimes-class}}
+}
 \description{
 get mimimal example \code{\link{ProcessTimesFrame-class}}
 }

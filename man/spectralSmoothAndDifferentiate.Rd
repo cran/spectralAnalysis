@@ -4,8 +4,14 @@
 \alias{spectralSmoothAndDifferentiate}
 \title{internal smoothing and differentiation function}
 \usage{
-spectralSmoothAndDifferentiate(object, method = "sg", order = 3,
-  window = order + 3 - order\%\%2, derivative = 0)
+spectralSmoothAndDifferentiate(
+  object,
+  method = "sg",
+  order = 3,
+  window = order + 7 - order\%\%2,
+  derivative = 0,
+  dim = "spectralAxis"
+)
 }
 \description{
 internal smoothing and differentiation function

@@ -8,8 +8,7 @@
 \usage{
 getTimePoints(object, ...)
 
-\S4method{getTimePoints}{SpectraInTime}(object, timePointsAlt = FALSE,
-  timeUnit = "seconds")
+\S4method{getTimePoints}{SpectraInTime}(object, timePointsAlt = FALSE, timeUnit = "seconds")
 }
 \arguments{
 \item{object}{a S4 class object}
@@ -19,6 +18,9 @@ getTimePoints(object, ...)
 \item{timePointsAlt}{logical indicator to get alternative (shifted) instead of recorded time points, defaults to \code{FALSE}}
 
 \item{timeUnit}{unit to use , choose between: \code{seconds} , \code{minutes} or \code{hours}, defaults equal to \code{seconds}}
+}
+\value{
+numberic vector containing timepoints
 }
 \description{
 generic function to extract \code{timePoints}-slot

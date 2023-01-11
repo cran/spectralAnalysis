@@ -6,6 +6,9 @@
 \usage{
 getListOfSpectraExample()
 }
+\value{
+list of \code{\link{SpectraInTime-class}}
+}
 \description{
 get example list of spectra
 }

@@ -2,9 +2,6 @@
 # 
 # Author: Robin Van OirBeek , Nicolas Sauwen , Adriaan Blommaert (order of making adaptations )
 #
-# Changes: 
-#      * time selection no longer inside integration 
-#      * integrationFrame no longer used, just use direct integration , double function not needed 
 #
 ###############################################################################
 
@@ -12,18 +9,12 @@
 NULL
 
 
-if( 0 == 1 ){
-  # developp + debug 
-  object                              <-  getSpectraInTimeExample()
-  wavelenghtRange                     <-  c( 170 , 200 )
-  smoothingValue                      <-  0
-}
 
 #' Integrate spectraInTime object 
 #'
-#' The integrated value over a user-specified wavelength range is calculated (trapezium rule) per time point, afterwards smoothing over time can be applied 
+#' The integrated value over a user-specified spectral range is calculated (trapezium rule) per time point, afterwards smoothing over time can be applied 
 #' @param object \code{\link{SpectraInTime-class}}
-#' @param wavelenghtRange numeric vector of 2 elements i.e. integration limits
+#' @param spectralRange numeric vector of 2 elements i.e. integration limits
 #' @param smoothingValue numeric value between 0 and 1, amount of code{\link[stats]{lowess}}-smoothing,
 #'  default to \code{0} i.e no smoothing. Note that smoothing is applied  after integration
 #' @param timeUnit character value, choose between: \code{second , minutes and hours}, defaults to 
@@ -38,22 +29,22 @@ if( 0 == 1 ){
 #' @importFrom methods new
 #' @importFrom stats lowess
 #' @export
-spectralIntegration                    <- function( object, wavelenghtRange , smoothingValue = 0 , timeUnit = "seconds"  ) {
+spectralIntegration                    <- function( object, spectralRange , smoothingValue = 0 , timeUnit = "seconds"  ) {
   ## input checking
   checkSmoothing                       <-  is.numeric( smoothingValue ) && ( smoothingValue  >= 0 )  &&  ( smoothingValue <= 1 ) 
   if( !checkSmoothing ) {
     stop( "'smoothingValue' should be a numeric value between 0 and 1")
   }
   
-  ## subset on wavelengthRange   
-  spectraSelect                        <-  object[ , r( wavelenghtRange ) ]
+  ## subset on spectral range   
+  spectraSelect                        <-  object[ , r( spectralRange ) ]
   ## extract elements
   times                                <-  getTimePoints( spectraSelect , timeUnit = timeUnit)
-  wavelengths                          <-  getWavelengths( spectraSelect )
-  pureSpectra                          <-  getSpectra( spectraSelect )
+  spectralAxis                          <-  getSpectralAxis( spectraSelect )
+  pureSpectra                          <-  abs(getSpectra( spectraSelect ))
   TIMEMARGIN                           <-  1
   ## integrate
-  integratedValues                     <-  apply( pureSpectra , TIMEMARGIN ,  "trapz" ,   x = wavelengths )
+  integratedValues                     <-  apply( pureSpectra , TIMEMARGIN ,  "trapz" ,   x = spectralAxis )
   ## smooth
   if(smoothingValue == 0 ) {
     integratedValuesSmooth             <-  integratedValues
@@ -66,7 +57,9 @@ spectralIntegration                    <- function( object, wavelenghtRange , sm
 
 
 
-#' integration via trapezium ruls originally from caTools package, included to avoid dependency on old package
+#' Integration via trapezium rule
+#' 
+#' Originally from caTools package, included to avoid dependency on old package
 #' with correction inverse scale, should give still possitive values (taken absolute values )
 #' 
 #' @keywords internal

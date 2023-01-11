@@ -5,13 +5,21 @@
 \name{normalize}
 \alias{normalize}
 \alias{normalize,SpectraInTime-method}
+\alias{normalize,SpectraInTimeComp-method}
 \title{generic normalization function}
 \usage{
 normalize(object, ...)
 
-\S4method{normalize}{SpectraInTime}(object, method = "normalize",
-  wavelengthRange = r(-Inf, Inf), wavelength = NULL, scaleFunction = "sd",
-  meanFunction = NULL)
+\S4method{normalize}{SpectraInTime}(
+  object,
+  method = "normalize",
+  spectralRange = r(-Inf, Inf),
+  spectralAxisVal = NULL,
+  scaleFunction = "sd",
+  meanFunction = NULL
+)
+
+\S4method{normalize}{SpectraInTimeComp}(object, ...)
 }
 \arguments{
 \item{object}{a S4 class object}
@@ -19,41 +27,45 @@ normalize(object, ...)
 \item{...}{additional parameters}
 
 \item{method}{a method for normalization or peak correction , choose from:
-* normalize substract \code{mean} and divide by \code{scale}
-* peak scale by reference \code{wavelength}
-* integrate scale by integrating over \code{wavelengthRange}}
 
-\item{wavelengthRange}{range for integration if method = \code{integration} , defaults to complete range}
+    * normalize substract \code{mean} and divide by \code{scale}
+    * peak scale by reference \code{spectralAxisVal}
+    * integration scale by integrating over \code{spectralAxisRange}}
 
-\item{wavelength}{reference wavelength for \code{peak} regresssion}
+\item{spectralRange}{range for integration if method = \code{integration} , defaults to complete range}
+
+\item{spectralAxisVal}{reference spectral axis value (wavelength or other) for \code{peak} regresssion}
 
 \item{scaleFunction}{scale function used when method = \code{normalize} defaults to \code{\link[stats]{sd}}}
 
 \item{meanFunction}{mean function used when method = \code{normalize} defaults to \code{\link[base]{mean}}}
+}
+\value{
+\code{\link{SpectraInTime-class}}
 }
 \description{
 generic normalization function
 }
 \examples{
  spectralEx            <-  getSpectraInTimeExample()
- timeRange                        <-  range( getTimePoints( spectralEx ))
- timesToSelect                    <-  e(  seq( timeRange[1] , timeRange[2] , length.out = 5  )   )
- \dontrun{
+ timeRange             <-  range( getTimePoints( spectralEx ))
+ timesToSelect         <-  e(  seq( timeRange[1] , timeRange[2] , length.out = 5  )   )
+ \donttest{
  plot( spectralEx )
  plot( spectralEx[ timesToSelect ,  ] , type = "time" )
 }
- normalizePeak         <-  normalize( spectralEx , method = "peak" , wavelength = 400 )
+ normalizePeak         <-  normalize( spectralEx , method = "peak" , spectralAxisVal = 400 )
  getPreprocessing( normalizePeak )
-\dontrun{
+\donttest{
  plot( normalizePeak[ timesToSelect ,  ] , type = "time" )
  plot( normalizePeak )
 }
  normalizeIntegration  <-  normalize( spectralEx , method = "integration" )
-\dontrun{
+\donttest{
  plot( normalizeIntegration[ timesToSelect ,  ] , type = "time" )
 }
  normalizedUser  <-  normalize( spectralEx , method = "normalize" , mean = "median" , scale = "sd" )
-\dontrun{
+\donttest{
  plot( normalizedUser[ timesToSelect ,  ] , type = "time" ) 
 }
 }

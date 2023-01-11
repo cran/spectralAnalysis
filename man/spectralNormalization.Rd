@@ -4,9 +4,14 @@
 \alias{spectralNormalization}
 \title{normalization function}
 \usage{
-spectralNormalization(object, method = "normalize",
-  wavelengthRange = r(-Inf, Inf), wavelength = NULL, scaleFunction = "sd",
-  meanFunction = NULL)
+spectralNormalization(
+  object,
+  method = "normalize",
+  spectralRange = r(-Inf, Inf),
+  spectralAxisVal = NULL,
+  scaleFunction = "sd",
+  meanFunction = NULL
+)
 }
 \description{
 normalization function

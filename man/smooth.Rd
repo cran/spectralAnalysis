@@ -5,52 +5,55 @@
 \name{smooth}
 \alias{smooth}
 \alias{smooth,SpectraInTime-method}
+\alias{smooth,SpectraInTimeComp-method}
 \title{generic smoothing function}
 \usage{
 smooth(object, ...)
 
-\S4method{smooth}{SpectraInTime}(object, method = "sg", order = 3,
-  window = order + 3 - order\%\%2, derivative = 0)
+\S4method{smooth}{SpectraInTime}(
+  object,
+  method = "sg",
+  order = 3,
+  window = order + 7 - order\%\%2,
+  derivative = 0,
+  dim = "spectralAxis"
+)
+
+\S4method{smooth}{SpectraInTimeComp}(object, ...)
 }
 \arguments{
 \item{object}{a S4 class object}
 
 \item{...}{additional parameters}
 
-\item{method}{character vector smoothing method, default = 'sg', i.e Savitsky-Golay filter.
-currently only implemented smoothing method}
+\item{method}{character vector smoothing method, options are 'sg' (= default, Savitsky-Golay filter) or 'mean'.}
 
-\item{order}{numeric value,  order of the polynomial used to interpolate, should be larger than derivative order,
+\item{order}{numeric value,  order of the polynomial used to interpolate (only used when \code{method = 'sg'}), should be larger than derivative order,
 defaults to 3 + derivative}
 
-\item{window}{width of the smoothing}
+\item{window}{width of the smoothing  default value slightly higher than in the signal package, the user might consider a large value, otherwise smoothing has little effect}
 
-\item{derivative}{derivative to be taken, defaults to \code{0}}
+\item{derivative}{derivative to be taken (only used when \code{method = 'sg'}), defaults to \code{0}}
+
+\item{dim}{character string, specifying along which dimension smoothing should be applied. Options are "spectralAxis" (= default) or "time"}
+}
+\value{
+\code{\link{SpectraInTime-class}}
 }
 \description{
-generic smoothing function
-
-smoothing is applied in the wavelength domain, not in the time domain
+smoothing is applied along the spectral axis, not the time axis
 }
 \note{
 equal distances between wavelenght intervals are assumed
 }
 \examples{
-     spectralEx     <-  getSpectraInTimeExample()
+\donttest{
+    spectralEx     <-  getSpectraInTimeExample()
     smoothDefault   <-  smooth( spectralEx )
     timeRange       <-  range( getTimePoints( spectralEx ))
     timesToSelect   <-  e( seq( timeRange[1] , timeRange[2] , length.out = 5  )  )
-    # plot( smoothDefault  )
-    # plot( smoothDefault[ timesToSelect , ] , type = "time")
     smoothALot      <-  smooth( spectralEx ,  order = 2 , window = 301  ) 
-    # plot( smoothALot )
-    # plot( smoothALot[  timesToSelect , ] , type = "time" )
-    derivative1     <-  smooth( spectralEx , derivative = 1 )
-    # plot( derivative1 )
-    # plot( derivative1[  timesToSelect ,] , type = "time" )
-    
+    derivative1     <-  smooth( spectralEx , derivative = 1 )   
     derivative2     <-  smooth( spectralEx , derivative = 2 )
-    # plot(  derivative2 )
-    # plot( derivative2[  timesToSelect , ] , type = "time" )
-    
+    }
 }

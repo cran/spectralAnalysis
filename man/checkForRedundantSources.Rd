@@ -2,8 +2,7 @@
 % Please edit documentation in R/spectralNMF.R
 \name{checkForRedundantSources}
 \alias{checkForRedundantSources}
-\title{Check if any of the source vectors in the initialized NMF model are redundant, 
-and should be omitted from the actual NMF analysis}
+\title{Check for redunt NMF source vectors}
 \usage{
 checkForRedundantSources(seed)
 }
@@ -14,8 +13,8 @@ checkForRedundantSources(seed)
 boolean vector, indicating which source vector(s) are redundant
 }
 \description{
-Check if any of the source vectors in the initialized NMF model are redundant, 
-and should be omitted from the actual NMF analysis
+Check if any of the source vectors in the initialized NMF model are redundant
+ and should be omitted from the actual NMF analysis
 }
 \author{
 Nicolas Sauwen

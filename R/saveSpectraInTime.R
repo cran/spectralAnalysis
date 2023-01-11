@@ -1,59 +1,7 @@
-# saving and export functions for SpectraInTimeObject
-# 
-# Author: Adriaan Blommaert
-###############################################################################
-
 #' @include internalHelpers.R
 NULL
 
-
-if( 0 == 1 ) {
-  library(jsonlite )
-  spectra         <-  getSpectraInTimeExample()
-  directory       <-  tempdir() 
-  saveSpectra(  spectra , directory )
-  experimentName  <-  getExperimentName( spectra )
-  file            <-  file.path( directory , paste0( experimentName , ".txt")  )
-  spectraRead     <-  readSpectra( file )
-  unlink( directory )
-  
-  
-  identical( spectra , spectraRead )
-  
-  
-  ## for testing
-  identical( str( spectra ) , str( spectraRead ) ) # identical structure
-  identical( ( spectra@spectra ) , ( spectraRead@spectra ) ) # unequal data
-  all.equal( ( spectra@spectra ) , ( spectraRead@spectra ) ) # unequal dat
-  spectra@spectra[ 1:3 , 1:5 ] 
-  spectraRead@spectra[ 1:3 , 1:5 ] 
-  plot( spectra  )
-  plot(  spectraRead )
-  identical( ( spectra@startTime ) , ( spectraRead@startTime ) )
-  
-  x= spectra
-  y = spectraRead
-  testIdenticalS4       <-  function( x , y ){
-    ## class
-    objectClass         <-  class( x )
-    class( object )
-    ## structure
-  }
-  
-  
-  file   <-  filePath
-  
-  unlink( directory ) # clean up temp directory
-  
-  
-  ## debugging
-  
-  object  <- spectra 
-  directory 
-  precision = 32
-}
-
-#' save a \code{\link{SpectraInTime-class}}  as a \code{.txt} file 
+#' read or save a \code{\link{SpectraInTime-class}} from or to a  \code{.txt} file 
 #' 
 #' @param object  object to save
 #' @param directory directory to save object
@@ -67,7 +15,7 @@ if( 0 == 1 ) {
 #' @importFrom jsonlite  toJSON read_json
 #' @examples 
 #'   \dontshow{ directory       <-  tempdir() } 
-#'   spectra         <-  getSpectraInTimeExample()
+#'  spectra         <-  getSpectraInTimeExample()
 #'  saveSpectra(  spectra , directory )
 #'  experimentName  <-  getExperimentName( spectra )
 #'  file            <-  file.path( directory , paste0( experimentName , ".txt")  )
@@ -76,18 +24,19 @@ if( 0 == 1 ) {
 #' @author Adriaan Blommaert
 #' @export
 saveSpectra                           <-  function( object , directory , precision = 32 ) {
-    objectAsList                      <-  convertS4ToList( object )
-    experimentName                    <-  getExperimentName( object )
-    fileName                          <-  paste0( experimentName , ".txt" )
-    filePath                          <-  file.path( directory , fileName )
-    testJSON                          <-  toJSON( objectAsList , force=TRUE, auto_unbox=TRUE, pretty=FALSE , digits = I(precision) )
-    cat( testJSON  , file = filePath )   
-    return( filePath )
+  objectAsList                      <-  convertS4ToList( object )
+  experimentName                    <-  getExperimentName( object )
+  fileName                          <-  paste0( experimentName , ".txt" )
+  filePath                          <-  file.path( directory , fileName )
+  testJSON                          <-  toJSON( objectAsList , force=TRUE, auto_unbox=TRUE, pretty=FALSE , digits = I(precision) )
+  cat( testJSON  , file = filePath )   
+  return( filePath )
 }
 
 
 
 #' @rdname saveSpectra
+#' @return \code{\link{SpectraInTime-class}}
 #' @param file to be read 
 #' @export
 readSpectra                            <-  function( file ){
@@ -97,6 +46,7 @@ readSpectra                            <-  function( file ){
   startTime                            <-  objectAsList$startTime
   startTimeFormat                      <-  as.POSIXct( startTime ) 
   objectAsListFormat[[ "startTime" ]]  <-  startTimeFormat
+  names(objectAsListFormat)[3] 		   <- "spectralAxis"
   objectAsSpectraInTime                <-  convertListToS4( objectAsListFormat , "SpectraInTime" );
   return( objectAsSpectraInTime )
 } 

@@ -1,9 +1,3 @@
-# Project: spectralAnalysis-R-package
-# 
-# Author: ablommaert
-###############################################################################
-
-
 #' S4 Class key process times   
 #'
 #' @slot experimentName character vector with name of the experiment
@@ -33,6 +27,7 @@ ProcessTimes                        <-  setClass( "ProcessTimes" , slots = c(
 #' @examples
 #'  getProcessTimesExample()
 #' @export  
+#' @return \code{\link{ProcessTimes-class}}
 #' @importFrom stats quantile
 getProcessTimesExample              <-  function(){
   spectraInTime                     <-  getSpectraInTimeExample()
@@ -78,15 +73,16 @@ ProcessTimes.validity              <-  function( object ){
 
 setValidity( "ProcessTimes" , ProcessTimes.validity )  
 
- 
-# TODO read in function from csv line to temperatureInfo object (with input a name )
 
 
+#' ProcessTimes-class
+#' 
 #' S4 Class key process times in a data frame, every line is convertable to a \code{\link{ProcessTimes-class} } 
 #'
 #' @slot processTimes data.frame with every line process times of an experiment 
 #' @name ProcessTimesFrame-class
 #' @author Adriaan Blommaert
+#' @return \code{\link{ProcessTimes-class}}
 #' @export 
 setClass( "ProcessTimesFrame"  , slots = c( processTimes = "data.frame" )  )
 
@@ -94,6 +90,7 @@ setClass( "ProcessTimesFrame"  , slots = c( processTimes = "data.frame" )  )
 #' get mimimal example \code{\link{ProcessTimesFrame-class}}
 #' 
 #' @author Adriaan Blommaert
+#'@return \code{\link{ProcessTimes-class}}
 #' @export
 getProcessTimesFrameExample      <-  function() {
 	times1                         <-  getProcessTimesExample()
@@ -122,6 +119,7 @@ getProcessTimesFrameExample      <-  function() {
 
 #' get example list of spectra
 #' 
+#' @return list of \code{\link{SpectraInTime-class}}
 #' @export
 getListOfSpectraExample          <-  function(){
 	spectra1                       <-  getSpectraInTimeExample()
@@ -173,25 +171,13 @@ setValidity( "ProcessTimesFrame" , processTimesFrame.validity )
 
 
 
-if( 0 == 1 ) {
-  # exampple path file 
-  
-  processTimes   <-  getProcessTimesFrameExample()@processTimes
-  write.csv( processTimes ,  file.path("/home/ablommaert/git/spectralAnalysis-R-package/spectralAnalysis/inst/extdata" , 
-          "exampleProcessTime.csv")  )
-  
-}
-
-
 #' example path process times 
-#' ecport
+#' @return \code{\link{ProcessTimes-class}}
 #' @export
 getPathProcessTimesExample             <-  function( ){
-  pathEx                                <-  system.file( "internalData/exampleProcessTime.csv" , package = "spectralAnalysis" )
+  pathEx                                <-  system.file( "exampleData/exampleProcessTime.csv" , package = "spectralAnalysis" )
   pathEx  
 }
-
-
 
 #' read .csv file as process times 
 #' 
@@ -201,6 +187,7 @@ getPathProcessTimesExample             <-  function( ){
 #' @examples
 #'  readProcessTimes( getPathProcessTimesExample() , timeFormat =  "%Y-%m-%d %H:%M:%S" )
 #' @importFrom utils read.csv
+#' @return \code{\link{ProcessTimes-class}}
 #' @export
 readProcessTimes                      <-  function( path ,  timeFormat = "%Y-%m-%d %H:%M:%OS" ) {
   timeInfo                            <-  read.csv( path, stringsAsFactors = FALSE, row.names = NULL  )
@@ -221,14 +208,4 @@ readProcessTimes                      <-  function( path ,  timeFormat = "%Y-%m-
   processTimesFrame                   <-  new( "ProcessTimesFrame" , processTimes = timeInfoOrdered ) # checks automatically 
   return( processTimesFrame )
 }
-
-
-
-
-
-
-
-
-
-
 

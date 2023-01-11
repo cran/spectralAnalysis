@@ -6,9 +6,9 @@
 \alias{RangeToSubset}
 \alias{rangetosubset}
 \alias{Rangetosubset}
-\title{Range S4 class (range) useful for subsetting with actual values instead of indicators}
+\title{RangeToSubset-class}
 \description{
-Range S4 class (range) useful for subsetting with actual values instead of indicators
+Allows for subsetting a range of actual values instead of a range of indicators
 }
 \section{Slots}{
 

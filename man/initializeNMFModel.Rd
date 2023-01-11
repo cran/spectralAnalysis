@@ -4,7 +4,7 @@
 \alias{initializeNMFModel}
 \title{Initialize NMF model with initial spectral data}
 \usage{
-initializeNMFModel(initSpectralData, spectra, wavelengths = NULL)
+initializeNMFModel(initSpectralData, spectra, spectralAxis = NULL)
 }
 \arguments{
 \item{initSpectralData}{this can be a list of spectralData objects, containing 
@@ -12,7 +12,10 @@ the pure component spectra. It can also be either of the NMF factor matrices wit
 
 \item{spectra}{spectral matrix, with wavelengths as its rows and time points as its columns}
 
-\item{wavelengths}{vector of wavelength values}
+\item{spectralAxis}{vector of wavelength/spectralAxis values}
+}
+\value{
+an object that inherents from the class \code{\link[NMF]{NMF}}
 }
 \description{
 Initialize NMF model with initial spectral data

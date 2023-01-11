@@ -2,7 +2,7 @@
 % Please edit documentation in R/spectralPreprocessing.R
 \name{localBaselineCorrect}
 \alias{localBaselineCorrect}
-\title{local baseline correct, substract a baseline either trough 1 or 2 points}
+\title{Local baseline correction}
 \usage{
 localBaselineCorrect(object, baseWavelengths = NULL)
 }
@@ -16,13 +16,13 @@ defaults to \code{NULL} when no baseline correction is performed}
 \code{\link{SpectraInTime-class}} with baseline subset
 }
 \description{
-local baseline correct, substract a baseline either trough 1 or 2 points
+Substract a baseline either through 1 or 2 points
 }
 \examples{
 spectra              <-  getSpectraInTimeExample()
 spectraConstCorrect  <-  localBaselineCorrect( spectra , baseWavelengths = 240  )
 spectraLinCorrect    <-  localBaselineCorrect( spectra , c( 250 , 330 )  ) 
-\dontrun{
+\donttest{
 plot( spectra )
 plot( spectraConstCorrect )
 plot( spectraLinCorrect ) 

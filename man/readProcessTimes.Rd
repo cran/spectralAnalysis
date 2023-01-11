@@ -13,6 +13,8 @@ readProcessTimes(path, timeFormat = "\%Y-\%m-\%d \%H:\%M:\%OS")
 }
 \value{
 \code{\link{ProcessTimesFrame-class}}
+
+\code{\link{ProcessTimes-class}}
 }
 \description{
 read .csv file as process times

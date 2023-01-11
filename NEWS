@@ -1,3 +1,11 @@
+version 3.14.3
+   * scatter correction fix not passing calculated reference spectra
+version 3.14
+  * some bug fixes and small improvements related to semi-NMF
+  * bug fix related to spectral normalization (type = "normalize")
+version 3.13
+ * bug fix: properly deal with initialization with negative values
+ * larger default smoothing window
 version 3.11
  * include plot method for list of spectra
 version 3.8

@@ -4,13 +4,17 @@
 \alias{spectralIntegration}
 \title{Integrate spectraInTime object}
 \usage{
-spectralIntegration(object, wavelenghtRange, smoothingValue = 0,
-  timeUnit = "seconds")
+spectralIntegration(
+  object,
+  spectralRange,
+  smoothingValue = 0,
+  timeUnit = "seconds"
+)
 }
 \arguments{
 \item{object}{\code{\link{SpectraInTime-class}}}
 
-\item{wavelenghtRange}{numeric vector of 2 elements i.e. integration limits}
+\item{spectralRange}{numeric vector of 2 elements i.e. integration limits}
 
 \item{smoothingValue}{numeric value between 0 and 1, amount of code{\link[stats]{lowess}}-smoothing,
 default to \code{0} i.e no smoothing. Note that smoothing is applied  after integration}
@@ -22,7 +26,7 @@ default to \code{0} i.e no smoothing. Note that smoothing is applied  after inte
 \code{data.frame} with variables \code{time} and \code{integratedValue}
 }
 \description{
-The integrated value over a user-specified wavelength range is calculated (trapezium rule) per time point, afterwards smoothing over time can be applied
+The integrated value over a user-specified spectral range is calculated (trapezium rule) per time point, afterwards smoothing over time can be applied
 }
 \examples{
 spectra                   <-  getSpectraInTimeExample()

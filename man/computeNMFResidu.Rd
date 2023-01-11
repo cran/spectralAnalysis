@@ -2,7 +2,7 @@
 % Please edit documentation in R/spectralNMF.R
 \name{computeNMFResidu}
 \alias{computeNMFResidu}
-\title{Compute relative residual per observation of an NMF fit to a spectral data set}
+\title{NMF relative residual per observation}
 \usage{
 computeNMFResidu(object, NMFResult)
 }

@@ -4,8 +4,7 @@
 \alias{subset.SpectraTime}
 \title{internal function for subsetting}
 \usage{
-\method{subset}{SpectraTime}(x, i, j, timeUnit = "seconds",
-  timePointsAlt = FALSE, drop = "")
+\method{subset}{SpectraTime}(x, i, j, timeUnit = "seconds", timePointsAlt = FALSE, drop = "")
 }
 \description{
 internal function for subsetting

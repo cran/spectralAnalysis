@@ -1,93 +1,13 @@
-# Preprocessing tools via method , option 
-# internal preprocessing method has syntax ( object , method , additinal arguments ) 
-# 
-# Author: Adriaan Blommaert
-###############################################################################
-
-
-
-
-if( 0 == 1) {
-  # get arguments in function call
-  
-  testFunc     <-  function( x , y = 3 , z ){
-    argumentsSyst  <-  as.list( sys.call() ) 
-    argumentsCal   <-  as.list( match.call() )
-    result     <-  x+y+z
-    return( list( result = result , argumentsSyst = argumentsSyst , argumentsCal = argumentsCal  ) )
-  }
-  
-  testFunc( x = 1 ,y = 2 , z =  3)
-  
-  
-  test1        <-  testFunc( x = 1 , z =  3)
-  arguments    <-  test1$argumentsSyst
-  test2        <-  do.call( as.character( arguments[[1]] ) , arguments[-1] )
-  identical( test1 , test2 )
-  
-  
-  ## test on spectralNormalization
-  exSpectra                  <-  getSpectraInTimeExample()
-  test1Norm                  <-  spectralNormalization( object )
-  preprocessingStep          <-  getPreprocessing( test1Norm )[[1]]
-  functionName               <-  preprocessingStep$preprocessing
-  functionArguments          <-  list( object = object , convertNamesToCharacter( preprocessingStep$arguments ) )
-  test2Norm                  <-  do.call( functionName , functionArguments  )
-  identical( test1Norm , test2Norm )  # not identical ???? they should be identical
-  identical( getSpectra( test1Norm) , getSpectra( test2Norm ))
-  
-   
-  identical( getPreprocessing( test1Norm) , getPreprocessing( test2Norm ) )
-  
-  preprocessingStep          <-  getPreprocessing( test2Norm )[[1]]
-  functionName               <-  preprocessingStep$preprocessing
-  functionArguments          <-  list( object = object , convertNamesToCharacter( preprocessingStep$arguments ) )
-  test2Norm                  <-  do.call( functionName , functionArguments  )
-  
-  
-  # test directly on normalization frame 
-  
-  object                    <-  getSpectraInTimeExample()
-  testNormMethod            <-  normalize( object , method = "integration" , wavelengthRange = c( 200 , 250 ) )
-  preprocessingStep         <-  getPreprocessing( testNormMethod  )[[1]]
-  functionName              <-  as.character( preprocessingStep[[1]] )
-  functionArguments         <-  as.list( preprocessingStep[ -1 ] ) # keep it a list
-  functionArguments[[1]]    <-  object # replace original object with new object
-  
-  testNormMethod2           <-  do.call( functionName , functionArguments )
-  identical( testNormMethod , testNormMethod2 )
-  
-  identical( getSpectra( testNormMethod )  , getSpectra( testNormMethod2 ) ) # identical spectra
-  getPreprocessing( testNormMethod2 ) # TODO reset preprocessing field to original arguments 
-  
-      
-  # replace first slot with new argument     
-  # test again with ,local
-  
-  
-  convertNamesToCharacter    <-  function( list ){
-    oneConversion            <-  function( x ){
-      ifelse( is.name( x) , as.character(x) , x )
-    }
-    lapply( list , oneConversion)
-    
-  }
-
-
-
-}
-
-
 #' normalization function
 #' @keywords internal
-spectralNormalization             <-  function( object , method = "normalize" ,  wavelengthRange = r(-Inf, Inf) ,
-    wavelength = NULL , scaleFunction = 'sd' , meanFunction = NULL   ){
+spectralNormalization             <-  function( object , method = "normalize" ,  spectralRange = r(-Inf, Inf) ,
+    spectralAxisVal = NULL , scaleFunction = 'sd' , meanFunction = NULL   ){
   ## general objects
 #  print(as.list(match.call())) # to check arguments 
 #  print(sys.calls())
 #  arguments                       <-  as.list( sys.call( 2 ) )
 #  arguments                       <-  match.call()
-  arguments                       <-  list( "normalize" ,  method = method , wavelengthRange = wavelengthRange , wavelength = wavelength , 
+  arguments                       <-  list( "normalize" ,  method = method , spectralRange = spectralRange , spectralAxisVal = spectralAxisVal , 
       scaleFunction = scaleFunction , meanFunction = meanFunction )
 #  arguments                       <-  as.list( sys.call(1) )
   TIMEMARGIN                      <-  1  
@@ -102,23 +22,24 @@ spectralNormalization             <-  function( object , method = "normalize" , 
   
   ## per method to normalization/scaling step 
   if( method == "integration" ){
-    integratedValues              <-  spectralIntegration( object  , wavelenghtRange = wavelengthRange   )
+    integratedValues              <-  spectralIntegration( object  , spectralRange = spectralRange   )
     referenceValue                <-  integratedValues[ , "value" ] 
     newSpectra                    <-  sweep( oldSpectra , TIMEMARGIN , STATS =  referenceValue , FUN = "/")
   }
   if( method == "peak" ) {
-    if( is.null( wavelength ) ) { stop("specify  'wavelength' to use peak normalization" ) }
-    referenceValue                <-  getSpectra( object[ , e( wavelength ) ] )
+    if( is.null( spectralAxisVal ) ) { stop("specify  'spectralAxisVal' to use peak normalization" ) }
+    referenceValue                <-  getSpectra( object[ , e( spectralAxisVal ) ] )
     newSpectra                    <-  sweep( oldSpectra , TIMEMARGIN, STATS =  referenceValue , FUN = "/"  )
   }
     
   if( method == "normalize" ){
     if( is.null( meanFunction ) ) {
-      meanCorrSpectra             <-  oldSpectra
-    } else {
-      meanSpec                    <-  apply( oldSpectra , TIMEMARGIN , meanFunction )
-      meanCorrSpectra             <-  sweep( oldSpectra , TIMEMARGIN , STATS = meanSpec )
-    }
+		meanFunction             <-  "mean"
+    } 
+	
+	meanSpec                    <-  apply( oldSpectra , TIMEMARGIN , meanFunction )
+	meanCorrSpectra             <-  sweep( oldSpectra , TIMEMARGIN , STATS = meanSpec )
+	
      
     scalePerTime                  <-  apply( meanCorrSpectra  , TIMEMARGIN , scaleFunction )
     newSpectra                    <-  sweep( meanCorrSpectra  , TIMEMARGIN , STATS = scalePerTime , FUN = "/" )
@@ -131,49 +52,47 @@ spectralNormalization             <-  function( object , method = "normalize" , 
 
 #' @rdname normalize
 #' @param method a method for normalization or peak correction , choose from:
+#' 
 #'     * normalize substract \code{mean} and divide by \code{scale}
-#'     * peak scale by reference \code{wavelength}
-#'     * integrate scale by integrating over \code{wavelengthRange}
-#' @param  wavelengthRange range for integration if method = \code{integration} , defaults to complete range 
-#' @param  wavelength reference wavelength for \code{peak} regresssion 
+#'     * peak scale by reference \code{spectralAxisVal}
+#'     * integration scale by integrating over \code{spectralAxisRange}
+#' 
+#' @param  spectralRange range for integration if method = \code{integration} , defaults to complete range 
+#' @param  spectralAxisVal reference spectral axis value (wavelength or other) for \code{peak} regresssion 
 #' @param  scaleFunction scale function used when method = \code{normalize} defaults to \code{\link[stats]{sd}}  
 #' @param  meanFunction mean function used when method = \code{normalize} defaults to \code{\link[base]{mean}} 
 #' @examples 
 #'  spectralEx            <-  getSpectraInTimeExample()
-#'  timeRange                        <-  range( getTimePoints( spectralEx ))
-#'  timesToSelect                    <-  e(  seq( timeRange[1] , timeRange[2] , length.out = 5  )   )
-#'  \dontrun{
+#'  timeRange             <-  range( getTimePoints( spectralEx ))
+#'  timesToSelect         <-  e(  seq( timeRange[1] , timeRange[2] , length.out = 5  )   )
+#'  \donttest{
 #'  plot( spectralEx )
 #'  plot( spectralEx[ timesToSelect ,  ] , type = "time" )
 #' }
-#'  normalizePeak         <-  normalize( spectralEx , method = "peak" , wavelength = 400 )
+#'  normalizePeak         <-  normalize( spectralEx , method = "peak" , spectralAxisVal = 400 )
 #'  getPreprocessing( normalizePeak )
-#' \dontrun{
+#' \donttest{
 #'  plot( normalizePeak[ timesToSelect ,  ] , type = "time" )
 #'  plot( normalizePeak )
 #' }
 #'  normalizeIntegration  <-  normalize( spectralEx , method = "integration" )
-#' \dontrun{
+#' \donttest{
 #'  plot( normalizeIntegration[ timesToSelect ,  ] , type = "time" )
 #' }
 #'  normalizedUser  <-  normalize( spectralEx , method = "normalize" , mean = "median" , scale = "sd" )
-#' \dontrun{
+#' \donttest{
 #'  plot( normalizedUser[ timesToSelect ,  ] , type = "time" ) 
 #' }
 #' @importFrom baseline baseline getCorrected
 #' @export 
 setMethod( "normalize" , "SpectraInTime"  , definition = spectralNormalization )
 
-
-if( 0 == 1 ){
-  # debugging 
-  object = getSpectraInTimeExample() ; method = 'lowpass'; degree = 1
-  additionalArguments <-  list(  )
-  
-  
-  testBase1                        <-  spectralBaselineCorrect(  ) 
-  
-}
+#' @rdname normalize
+setMethod( "normalize" , "SpectraInTimeComp"  , definition = function( object , ... ){
+      newObject          <-  as( object , Class = "SpectraInTime" )
+      callNextMethod( object = newObject , ... )
+    } 
+)
 
 spectralBaselineCorrect            <-  function( object , method = 'modpolyfit' , degree = 4 , ...   ) {
   additionalArguments              <-  list( ... )
@@ -201,6 +120,7 @@ spectralBaselineCorrect            <-  function( object , method = 'modpolyfit' 
 
 
 
+
 #'@rdname baselineCorrect 
 #' 
 #' @note baseline correction in the wavelength domain by linking to the \code{\link[baseline]{baseline}}
@@ -209,7 +129,6 @@ spectralBaselineCorrect            <-  function( object , method = 'modpolyfit' 
 #' @param ... other parameters passed to \code{\link[baseline]{baseline}}
 #' @examples 
 #'  spectralEx           <-  getSpectraInTimeExample()
-#'  plot( spectralEx )   
 #'  timeRange            <-  range( getTimePoints( spectralEx ) )
 #'  timesToSelect        <-  e(  seq( timeRange[1] , timeRange[2] , length.out = 5  )   )
 #'  baselineDefault      <-  baselineCorrect( spectralEx )
@@ -220,22 +139,32 @@ spectralBaselineCorrect            <-  function( object , method = 'modpolyfit' 
 #'  baselineLowpass         <-  baselineCorrect( spectralEx , method = "lowpass" )
 #' 
 #'  # visual inspection
+#'  \donttest{
+#'  plot( spectralEx )   
 #'  plot( baselineDefault[ timesToSelect , ] , type = "time"  )
 #'  plot( baselineHighPolynomial[ timesToSelect , ] , type = "time"  )
 #'  plot( baselineLowpass[ timesToSelect , ] , type = "time"  ) 
+#' }
 #' 
 #' @export
 setMethod( "baselineCorrect" , "SpectraInTime" , spectralBaselineCorrect )
 
+#'@rdname baselineCorrect 
+setMethod( "baselineCorrect" , "SpectraInTimeComp"  , definition = function( object , ... ){
+      newObject          <-  as( object , Class = "SpectraInTime" )
+      callNextMethod( object = newObject , ... )
+    } 
+)
 
 #' internal smoothing and differentiation function
+#' @importFrom zoo rollapply
 #' @keywords internal
-spectralSmoothAndDifferentiate     <-  function( object, method = "sg" , order = 3 ,  window = order + 3 - order%%2 , derivative = 0  ){
+spectralSmoothAndDifferentiate     <-  function( object, method = "sg" , order = 3 ,  window = order + 7 - order%%2 , derivative = 0 , dim = "spectralAxis"){
 #  arguments                        <-  as.list( sys.call(2) )
 #  arguments                       <-  as.list( sys.call(1) )
   arguments                        <-  list( "smooth" , method = method , order = order , 
       window = window , derivative = derivative )
-  TIMEMARGIN                       <-  1  
+  MARGIN                           <-  switch(dim, spectralAxis = 1, time = 2)  
   oldSpectra                       <-  getSpectra( object )
 
   
@@ -246,20 +175,26 @@ spectralSmoothAndDifferentiate     <-  function( object, method = "sg" , order =
     stop( "'order' should be larger than 'derivative'")
   }
     # method
-  allowedMethods                   <-  c( "sg"  )
+  allowedMethods                   <-  c( "sg" , "mean" )
   checkMethod( method = method , allowedMethods = allowedMethods )
   
   ## SG filtering  
   # tODO:test
   if( method == 'sg') {
-    filterFunction                 <- function( row ) {
-      result                       <-  sgolayfilt( x = row , p = order  , n = window , m = derivative )
-      return( result )
-    }   
+	  filterFunction                 <- function( row ) {
+		  result                       <-  signal::sgolayfilt( x = row , p = order  , n = window , m = derivative )
+		  return( result )
+	  } 
+  } else if( method == 'mean') {
+	  filterFunction                 <- function( row ) {
+		  result                       <-  zoo::rollapply(data = row, width = window, mean, partial = TRUE)
+		  return( result )
+	  } 
   }
   
   ## adapt object
-  newSpectra                       <-  t( apply( oldSpectra , TIMEMARGIN , filterFunction )  ) 
+  newSpectra                       <-  t( apply( oldSpectra , MARGIN , filterFunction )  ) 
+  if(MARGIN == 2) newSpectra       <- t(newSpectra)
   
   newObject                        <-  addPreprocessingStep( object = object , newSpectra = newSpectra , arguments )
   return( newObject ) 
@@ -269,67 +204,44 @@ spectralSmoothAndDifferentiate     <-  function( object, method = "sg" , order =
 
 #' Apply Savitzky-Golay smoothing filter and optionally return smoothed spectra or dif
 #' 
-#' smoothing is applied in the wavelength domain, not in the time domain 
-#' @param method character vector smoothing method, default = 'sg', i.e Savitsky-Golay filter.
-#'   currently only implemented smoothing method
-#' @param order numeric value,  order of the polynomial used to interpolate, should be larger than derivative order,
+#' smoothing is applied along the spectral axis, not the time axis 
+#' @param method character vector smoothing method, options are 'sg' (= default, Savitsky-Golay filter) or 'mean'.
+#' @param order numeric value,  order of the polynomial used to interpolate (only used when \code{method = 'sg'}), should be larger than derivative order,
 #'  defaults to 3 + derivative 
-#' @param  window width of the smoothing 
-#' @param derivative derivative to be taken, defaults to \code{0}
+#' @param  window width of the smoothing  default value slightly higher than in the signal package, the user might consider a large value, otherwise smoothing has little effect
+#' @param derivative derivative to be taken (only used when \code{method = 'sg'}), defaults to \code{0}
+#' @param dim character string, specifying along which dimension smoothing should be applied. Options are "spectralAxis" (= default) or "time"
 #' @rdname smooth
 #' @examples 
-#'      spectralEx     <-  getSpectraInTimeExample()
+#' \donttest{
+#'     spectralEx     <-  getSpectraInTimeExample()
 #'     smoothDefault   <-  smooth( spectralEx )
 #'     timeRange       <-  range( getTimePoints( spectralEx ))
 #'     timesToSelect   <-  e( seq( timeRange[1] , timeRange[2] , length.out = 5  )  )
-#'     # plot( smoothDefault  )
-#'     # plot( smoothDefault[ timesToSelect , ] , type = "time")
 #'     smoothALot      <-  smooth( spectralEx ,  order = 2 , window = 301  ) 
-#'     # plot( smoothALot )
-#'     # plot( smoothALot[  timesToSelect , ] , type = "time" )
-#'     derivative1     <-  smooth( spectralEx , derivative = 1 )
-#'     # plot( derivative1 )
-#'     # plot( derivative1[  timesToSelect ,] , type = "time" )
-#'     
+#'     derivative1     <-  smooth( spectralEx , derivative = 1 )   
 #'     derivative2     <-  smooth( spectralEx , derivative = 2 )
-#'     # plot(  derivative2 )
-#'     # plot( derivative2[  timesToSelect , ] , type = "time" )
-#'     
+#'     }
 #' @note equal distances between wavelenght intervals are assumed
 #' @importFrom signal sgolayfilt
 setMethod( "smooth" , "SpectraInTime" ,  spectralSmoothAndDifferentiate )
 
 
-### general helper function
-
-if( 0 == 1 ){
-  object           <-  getSpectraInTimeExample() 
-  newSpectra       <-  (object@spectra/2)
-  preprocessingInfo  <-  list( blabla = "blabla" )
-  
-  test1 <-  addPreprocessingStep( object , newSpectra , preprocessingInfo )
-  getPreprocessing( test1 )[[1]]
-  test2 <-  addPreprocessingStep( test1, newSpectra/2 , preprocessingInfo = list( 1234, "hv" , "hv"))
-}
+#'@rdname  smooth
+setMethod( "smooth" , "SpectraInTimeComp"  , definition = function( object , ... ){
+      newObject          <-  as( object , Class = "SpectraInTime" )
+      callNextMethod( object = newObject , ... )
+    } 
+)
 
 
-
-
-if( 0 == 1 ){
-  object            <-   getSpectraInTimeExample()
-  object@preprocessing <-  list( step1 = list( 1 ,2 , 3) , step2 = list('a' , 'b' , 'c' , c(1,2,3)) )
-  newSpectra        <-  getSpectra( object ) * 0 
-  preprocessingInfo    <-  list("this is the latest step ")
-  
-  addPreprocessingStep( object , newSpectra , preprocessingInfo )
-}
 
 #' function to use by preprocessing step
 #' 
 #' change the spectra and add preprocessing info, check whehther the object is valid 
 #' @param object \code{\link{SpectraInTime-class}}
 #' @param newSpectra numeric matrix new spectral data
-#' @param list of preprocessing info
+#' @param preprocessingInfo list of preprocessing info
 #' @return code{\link{SpectraInTime-class}}
 #' @keywords internal 
 addPreprocessingStep               <-  function( object , newSpectra , preprocessingInfo ){
@@ -364,41 +276,6 @@ checkMethod                      <-  function( method , allowedMethods ) {
 
 ### preprocess (repeat preprocessing step)
 
-if( 0 ==  1) {
-  ## bug in setting preprocessing steps 
-  objectExample    <-   getSpectraInTimeExample()
-  test1  <-  normalize( objectExample ) 
-  getPreprocessing( test1 )
-  test2  <-  baselineCorrect( test1 )
-  getPreprocessing( test2 )
-  test3   <- smooth( test2 )
-  getPreprocessing( test3 )
-  
-    
-  test3Bis         <-  smooth( baselineCorrect( normalize( objectExample ) ) )
-  getPreprocessing( test3Bis )
-  
-  identical( getSpectra( test3 ) , getSpectra( test3Bis ) ) 
-  
-  test3Tris        <-  preprocessSpectraInTimeWithList( objectExample , getPreprocessing( test3 ) )
-  
-  identical( getSpectra(test3) , getSpectra(test3Bis) ) 
-  
-  getPreprocessing( smooth( objectExample ) )
-  testje            <-   smooth( baselineCorrect( objectExample ) ) 
-  
-  
-  
-  objectExample                          <-  getSpectraInTimeExample()
-#  objectPreprocessed                     <-  baselineCorrect( smooth( normalize( objectExample ) ) )
-  objectPreprocessed                     <-  baselineCorrect( smooth( normalize( objectExample , method = "integration" ) ) )
-  preprocessingSteps                     <-  getPreprocessing( objectPreprocessed )
-  object                                 <-  objectExample
-  
-  objectPreprocessed2                    <-  preprocessSpectraInTimeWithList( objectExample , preprocessingSteps )
-  identical( getSpectra( objectPreprocessed) , getSpectra( objectPreprocessed2) )
-}
-
 #' internal function to wrap multiple preprocessing steps
 #' @keywords internal
 preprocessSpectraInTimeWithList          <-  function( object , with ){
@@ -423,11 +300,6 @@ preprocessSpectraInTimeWithList          <-  function( object , with ){
 
 ## specific preprocessing methods 
 #' @rdname preprocess
-#' @examples
-#' 
-#'  object1   <-  getSpectraInTimeExample()
-#'  object2   <-  getSpectraInTimeExample
-#' 
 #' @export
 setMethod( "preprocess" ,  c("SpectraInTime" , "list" ) , preprocessSpectraInTimeWithList )
 
@@ -439,18 +311,17 @@ setMethod( "preprocess" ,  c( object = "SpectraInTime" , with = "SpectraInTime" 
     }
 )
 
+#' @rdname preprocess
+setMethod( "preprocess" , "SpectraInTimeComp"  , function( object , with ){
+      newObject                 <-  as( object, Class = "SpectraInTime" )
+      callNextMethod( object = newObject , with = with )
+    }
+)
 
 
-if( 0 == 1 ){
-  object           <-  getSpectraInTimeExample()
-  plot( object )
-  
-  baseWavelengths = 200
-  
-  baseWavelengths = c( 200 , 400 )
-}
-
-#' local baseline correct, substract a baseline either trough 1 or 2 points
+#' Local baseline correction
+#' 
+#' Substract a baseline either through 1 or 2 points
 #' 
 #' @param object  \code{\link{SpectraInTime-class}}
 #' @param baseWavelengths numeric vector of 1 or 2 wavelength use to draw a baseline trough,
@@ -460,7 +331,7 @@ if( 0 == 1 ){
 #' spectra              <-  getSpectraInTimeExample()
 #' spectraConstCorrect  <-  localBaselineCorrect( spectra , baseWavelengths = 240  )
 #' spectraLinCorrect    <-  localBaselineCorrect( spectra , c( 250 , 330 )  ) 
-#' \dontrun{
+#' \donttest{
 #' plot( spectra )
 #' plot( spectraConstCorrect )
 #' plot( spectraLinCorrect ) 
@@ -495,7 +366,7 @@ localBaselineCorrect           <-  function( object , baseWavelengths = NULL  ) 
     deltaX                       <-  baseWL2 - baseWL1
     deltaY                       <-  baseData2 - baseData1
     rico                         <-  deltaY/deltaX
-    waveDiffVersusBase1          <-  getWavelengths( object ) -  baseWL1
+    waveDiffVersusBase1          <-  getSpectralAxis( object ) -  baseWL1
     
     # convert everything to correct dimensions
     baseData1Mat                 <-  matrix( baseData1  , byrow = FALSE , nrow = spectralDims[1] , ncol = spectralDims[2] )
@@ -504,12 +375,7 @@ localBaselineCorrect           <-  function( object , baseWavelengths = NULL  ) 
     
     
     baseSpectrum                 <-  baseData1Mat +   ricoMat * waveDiffVersusBase1Mat
-    if( 0 == 1 ){ # check out base spectrum substracted 
-      testBaseSpec               <-  object
-      testBaseSpec@spectra        <-  baseSpectrum   
-      plot( testBaseSpec )
-    }
-    
+
     
     correctedSpectrum            <-  originalSpectra - baseSpectrum 
    
@@ -527,14 +393,62 @@ localBaselineCorrect           <-  function( object , baseWavelengths = NULL  ) 
   if( validObject ) {
     return( baselineCorrectedSpectrum )
   } 
-} # TODO modify preprocessing field
+}
 
 
 
 
+### multiplicative scatter correction
+
+#' multiplicative scatter correction on 1 function
+#' 
+#' @param x numerical vector of measurements
+#' @return corrected spectrum 
+#' @importFrom stats lm
+#' @keywords internal
+multiplicativeScatterCorrect                   <-  function( x , xRef ){
+	nObs                                       <-  length( x )			
+	linMod                                     <-  lm( x ~ xRef )
+	modelCoef                                  <-  coef( linMod )
+	correctedSpectrum                          <-  ( x - modelCoef[1] )/ modelCoef[2]
+	correctedSpectrum
+}
 
 
 
+
+#' perform multiplicative scatter correction on spectralData
+#' 
+#' @importFrom  plyr aaply 
+#' @author Adriaan Blommaert
+#' @keywords internal
+scatterCorrectSpectra                          <-  function( object , referenceSpectra = NULL , referenceMethod = "mean" ){
+	spectraOnly                                <-  getSpectra( object ) 
+  arguments                                  <-  list( "scatterCorrect" , referenceSpectra = referenceSpectra ,  referenceMethod = referenceMethod )
+
+	# getReference spectra
+	if( is.null( referenceSpectra ) ){
+		referenceSpectra                       <-  apply( spectraOnly , 2 , referenceMethod )
+	}
+	
+	spectraCorrected                           <-  aaply( spectraOnly , 1 ,  multiplicativeScatterCorrect , xRef = referenceSpectra )
+	newSpectra                                 <-  addPreprocessingStep( object = object , newSpectra =  spectraCorrected , preprocessingInfo = arguments )
+	newSpectra           
+}  
+
+
+
+#' @rdname scatterCorrect
+#' @examples
+#' 
+#'  object1   <-  getSpectraInTimeExample()
+#'  object2   <-  scatterCorrect( object1 )
+#'  \donttest{
+#'    plot( object1 )
+#'    plot( object2 )
+#' }
+#' @keywords internal
+setMethod( scatterCorrect , "SpectraInTime" , scatterCorrectSpectra )
 
 
 

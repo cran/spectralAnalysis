@@ -6,6 +6,7 @@
 \alias{preprocess}
 \alias{preprocess,SpectraInTime,list-method}
 \alias{preprocess,SpectraInTime,SpectraInTime-method}
+\alias{preprocess,SpectraInTimeComp,ANY-method}
 \title{generic function to preprocess an S4 object}
 \usage{
 preprocess(object, with)
@@ -13,18 +14,17 @@ preprocess(object, with)
 \S4method{preprocess}{SpectraInTime,list}(object, with)
 
 \S4method{preprocess}{SpectraInTime,SpectraInTime}(object, with)
+
+\S4method{preprocess}{SpectraInTimeComp,ANY}(object, with)
 }
 \arguments{
 \item{object}{a S4 class object}
 
 \item{with}{an other object containing preprocessing information: other S4 object, list or expression}
 }
+\value{
+\code{\link{SpectraInTime-class}}
+}
 \description{
 generic function to preprocess an S4 object
-}
-\examples{
-
- object1   <-  getSpectraInTimeExample()
- object2   <-  getSpectraInTimeExample
-
 }

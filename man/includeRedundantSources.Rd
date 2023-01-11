@@ -2,8 +2,7 @@
 % Please edit documentation in R/spectralNMF.R
 \name{includeRedundantSources}
 \alias{includeRedundantSources}
-\title{Re-introduce redundant source vectors and corresponding zero abundances 
-into final NMF result}
+\title{Re-introduce redundant sources in NMF-model}
 \usage{
 includeRedundantSources(NMFResult, seed_orig, redundantSources)
 }

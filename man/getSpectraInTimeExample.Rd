@@ -9,12 +9,14 @@ getSpectraInTimeExample(showPlots = FALSE)
 \arguments{
 \item{showPlots}{logical indicator to show plots}
 }
+\value{
+\code{\link{SpectraInTime-class}}
+}
 \description{
 exponential conversion from 2 concentrations with gaussion curves for spectra at different wavelength per compounds
 }
 \examples{
 ex1  <-   getSpectraInTimeExample()
-ex2  <-  getSpectraInTimeExample( showPlots = TRUE )
 }
 \author{
 Adriaan Blommaert

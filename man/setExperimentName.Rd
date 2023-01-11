@@ -18,6 +18,9 @@ setExperimentName(object) <- value
 
 \item{value}{a vector of time points}
 }
+\value{
+\code{\link{SpectraInTime-class}} with modified experiment name
+}
 \description{
 set the experiment name
 }

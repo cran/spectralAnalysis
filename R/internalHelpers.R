@@ -1,11 +1,3 @@
-# Project: spectralAnalysis-R-package
-#  
-# Author: Adriaan Blommaert
-#
-# Description: simple internal functions 
-###############################################################################
-
-
 #' add an message to list of messages for printing #
 #' 
 #' @keywords internal 
@@ -25,7 +17,9 @@ processValididtyErrors          <-  function( errors ) {
 }
 
 
-#' Function to overwrite default settings, print to console when changing default settings and add to default settings 
+#' Function to overwrite default settings
+#' 
+#' Changes are printed print to the console when changing default settings and adding to default settings 
 #' 
 #' @param defaultsSettings list of settings
 #' @param replaceSettings list of settings to overwrite defaults or add to defaults
@@ -51,9 +45,6 @@ changeDevSettings                <-  function( defaultSettings , replaceSettings
 #' @param vector numeric vector
 #' @param interval numeric vecor with 2 values
 #' @note if interval is \code{NULL} then no selection  is performed  
-#' @examples 
-#' spectralAnalysis:::flagVectorInInterval( 1:10 , c( 4 , 7) )
-#' spectralAnalysis:::flagVectorInInterval( 1:10 , NULL )
 #' @keywords internal
 #' @author Adriaan Blommaert 
 flagVectorInInterval               <-  function( vector , interval ) {
@@ -138,7 +129,6 @@ convertS4ToList               <-  function( object ){
 	slotsToExtract              <-  slotNames( object )
 	slotList                    <-  lapply( slotsToExtract , function( slot ) {
 				slot( object = object, name = slot )
-				
 			} 
 	)
 	names( slotList )           <- slotsToExtract  
@@ -208,8 +198,3 @@ checkIdenticalClass      <-  function( listOfObjects , class ){
   classPerObject         <-  sapply( listOfObjects , function(x){ class( x ) == class }  )
   all( classPerObject  )
 }
-
-
-
-
-

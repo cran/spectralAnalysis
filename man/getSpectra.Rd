@@ -4,7 +4,6 @@
 \name{getSpectra}
 \alias{getSpectra}
 \alias{getSpectra,SpectraInTime-method}
-\alias{getSpectra,SpectraInTime-method}
 \title{generic function to extract \code{spectra}-slot}
 \usage{
 getSpectra(object, ...)
@@ -17,6 +16,9 @@ getSpectra(object, ...)
 \item{object}{a S4 class object}
 
 \item{...}{additional parameters}
+}
+\value{
+matrix of spectra
 }
 \description{
 generic function to extract \code{spectra}-slot

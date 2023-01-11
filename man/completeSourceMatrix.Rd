@@ -4,7 +4,7 @@
 \alias{completeSourceMatrix}
 \title{complete source matrix}
 \usage{
-completeSourceMatrix(W0, rank)
+completeSourceMatrix(W0, rank, method)
 }
 \description{
 complete source matrix

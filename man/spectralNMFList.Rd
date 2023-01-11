@@ -4,8 +4,16 @@
 \alias{spectralNMFList}
 \title{Perform Non-Negative Matrix factorization on list of SPC files}
 \usage{
-spectralNMFList(objectList, rank, method = "PGNMF", initSpectralData = NULL,
-  nruns = 10, subsamplingFactor = 3, checkDivergence = TRUE)
+spectralNMFList(
+  objectList,
+  rank,
+  method = "PGNMF",
+  initSpectralData = NULL,
+  nruns = 10,
+  subsamplingFactor = 3,
+  checkDivergence = TRUE,
+  maxIter = 1000
+)
 }
 \arguments{
 \item{objectList}{list of SPC files}
@@ -22,12 +30,21 @@ of the 'nmf' function from the NMF package for the methods available by default}
 \item{subsamplingFactor}{subsampling factor used during NMF analysis}
 
 \item{checkDivergence}{Boolean indicating whether divergence checking should be performed}
+
+\item{maxIter}{maximum number of iterations per NMF run}
 }
 \value{
-list of NMF models
+list of \code{\link{SpectraInTimeComp-class}}
 }
 \description{
 Perform Non-Negative Matrix factorization on list of SPC files
+}
+\examples{
+\donttest{
+
+   spectralData    <-  getListOfSpectraExample()
+   spectraWithNmf  <-  spectralNMFList( spectralData , rank = 2 )
+}
 }
 \author{
 Nicolas Sauwen

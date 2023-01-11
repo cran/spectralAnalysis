@@ -2,7 +2,7 @@
 % Please edit documentation in R/internalHelpers.R
 \name{changeDevSettings}
 \alias{changeDevSettings}
-\title{Function to overwrite default settings, print to console when changing default settings and add to default settings}
+\title{Function to overwrite default settings}
 \usage{
 changeDevSettings(defaultSettings, replaceSettings)
 }
@@ -15,6 +15,6 @@ changeDevSettings(defaultSettings, replaceSettings)
 list
 }
 \description{
-Function to overwrite default settings, print to console when changing default settings and add to default settings
+Changes are printed print to the console when changing default settings and adding to default settings
 }
 \keyword{internal}

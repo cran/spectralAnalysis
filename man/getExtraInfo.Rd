@@ -15,6 +15,9 @@ getExtraInfo(object, ...)
 
 \item{...}{additional parameters}
 }
+\value{
+list of extraInfo
+}
 \description{
 generic function to extract \code{extraInfo}-slot
 }

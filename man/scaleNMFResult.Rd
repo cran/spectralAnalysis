@@ -2,7 +2,7 @@
 % Please edit documentation in R/spectralNMF.R
 \name{scaleNMFResult}
 \alias{scaleNMFResult}
-\title{Apply fixed scaling to NMF model matrices by normalizing the basis vectors}
+\title{Apply fixed scaling to NMF model}
 \usage{
 scaleNMFResult(NMFResult)
 }

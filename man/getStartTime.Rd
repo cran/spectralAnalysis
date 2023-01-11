@@ -15,6 +15,9 @@ getStartTime(object, ...)
 
 \item{...}{additional parameters}
 }
+\value{
+character vector with start time
+}
 \description{
 generic function to extract \code{startTime}-slot
 }

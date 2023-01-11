@@ -15,6 +15,9 @@ getExperimentName(object, ...)
 
 \item{...}{additional parameters}
 }
+\value{
+string containing experiment name
+}
 \description{
 generic function to extract \code{experimentName}-slot
 }

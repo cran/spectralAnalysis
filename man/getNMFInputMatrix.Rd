@@ -2,7 +2,7 @@
 % Please edit documentation in R/spectralNMF.R
 \name{getNMFInputMatrix}
 \alias{getNMFInputMatrix}
-\title{Extract spectral input matrix from SPC file and condition properly for NMF}
+\title{Get spectralData as input NMF model}
 \usage{
 getNMFInputMatrix(object, method = "")
 }
@@ -15,7 +15,7 @@ getNMFInputMatrix(object, method = "")
 spectral matrix, with wavelengths as its rows and time points as its columns
 }
 \description{
-Extract spectral input matrix from SPC file and condition properly for NMF
+Extract spectral input matrix from \code{\link{SpectraInTime-class}} and condition properly for NMF modeling
 }
 \author{
 Nicolas Sauwen

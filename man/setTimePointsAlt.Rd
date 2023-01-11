@@ -12,6 +12,9 @@ setTimePointsAlt(object) <- value
 
 \item{value}{a vector of time points}
 }
+\value{
+\code{\link{SpectraInTime-class}} with modified timePointsAlt axis
+}
 \description{
 set time alternative time axis
 }

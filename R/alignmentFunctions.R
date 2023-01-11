@@ -1,30 +1,5 @@
-##############################################################################
-### Project: spectralAnalysis package                                      ###
-###                                                                        ###
-### Description: Functions to align data with zero point                  ###
-###   the end of the heating ramp                                           ### 
-###                                                                        ###
-###                                                                        ###
-###                                                                        ###
-###                                                                        ###
-### Author: ablommaert                                                     ### 
-###         <adriaan.blommaert@openanalytics.eu>                           ###
-###                                                                        ###
-###                                                                        ###
-### Maintainer:ablommaert                                                  ###
-###       <adriaan.blommaert@openanalytics.eu>                             ###
-###                                                                        ###  
-###                                                                        ###
-### version 2.0                                                            ###
-###                                                                        ###
-### changes:                                                               ###
-###                                                                        ###
-###                                                                        ###
-##############################################################################
-
 #' @include internalHelpers.R allGenericFunctions.R objectLinking.R   
 NULL
-
 
 
 #' align 1 SpectraInTime with 1 cooling information
@@ -80,9 +55,6 @@ timeAlign.SpectraInTime                   <-  function( x , y , cutCooling  , cu
 }
 
 
-
-
-
 #' Align all spectra in a list 
 #'  
 #' @keywords internal
@@ -130,6 +102,7 @@ return( alignedSpectra )
 #'  cutCooling = TRUE , cutBeforeMinTemp = TRUE )
 #' ex3  <-  timeAlign( x = listOfSpectra , y = pathProcessTimes, 
 #'  cutCooling = TRUE , cutBeforeMinTemp = TRUE  , timeFormat =  "%Y-%m-%d %H:%M:%OS" )
+#' @return  \code{\link{SpectraInTime-class}} or list of spectra depending on input
 #' @export
 setMethod( timeAlign , signature = c( "SpectraInTime" , "ProcessTimes" ) , definition = function( x , y , cutCooling = FALSE , cutBeforeMinTemp = FALSE ) {
       timeAlign.SpectraInTime( x = x , y = y , cutCooling = cutCooling , cutBeforeMinTemp )
@@ -165,13 +138,13 @@ setMethod( timeAlign , signature = c( "list" ,  "character" ) ,
 	 newSpectralObject2                      <-  toAlign
 	 
 	 ## extract time elements
-	 WL1 				<- getWavelengths(ref)
-	 WL2 				<- getWavelengths(toAlign)
+	 WL1 				<- getSpectralAxis(ref)
+	 WL2 				<- getSpectralAxis(toAlign)
 	 spectra1 			<- getSpectra(ref)
 	 spectra2 			<- getSpectra(toAlign)
 	 
 	 if(min(WL1) > max(WL2) | max(WL1) < min(WL2)) {
-		 stop( "Provided SpectraInTime objects have non-overlapping wavelength axes" )
+		 stop( "Provided SpectraInTime objects have non-overlapping spectral axes" )
 	 }
 	 
 	 ## wavelength align
@@ -193,8 +166,8 @@ setMethod( timeAlign , signature = c( "list" ,  "character" ) ,
 	 }
 	 
 	 ## store aligned SpectraInTime objects in a list
-	 newSpectralObject1@wavelengths 	<- WL1
-	 newSpectralObject2@wavelengths 	<- WL1
+	 newSpectralObject1@spectralAxis 	<- WL1
+	 newSpectralObject2@spectralAxis 	<- WL1
 	 newSpectralObject1@spectra 		<- spectra1
 	 newSpectralObject2@spectra 		<- spectra2_new
 	 
@@ -212,7 +185,7 @@ setMethod( timeAlign , signature = c( "list" ,  "character" ) ,
 	spectralDataAlignedList[["ref"]] <- ref_new
 	
 	## check if all objects in the list have the same wavelength axis
-	wavelength_list <- lapply(spectralDataAlignedList, getWavelengths)
+	wavelength_list <- lapply(spectralDataAlignedList, getSpectralAxis)
 	
 	if(length(unique(lengths(wavelength_list))) != 1) stop( "List of SpectraInTime objects to be aligned should all have the same wavelength axis" )
 	
@@ -230,6 +203,16 @@ setMethod( timeAlign , signature = c( "list" ,  "character" ) ,
 #' @param toAlign \code{\link{SpectraInTime-class}} object(s) to be aligned. This can either be a single SpectraInTime object
 #' or a list of SpectraInTime objects. In case of a list, all objects in the list should have the same wavelength axis.
 #' @return List of aligned SpectraInTime objects, including the reference object. 
+#' @examples 
+#' 
+#'   spectra             <-  getSpectraInTimeExample()
+#'   listOfSpectra       <-  getListOfSpectraExample()
+#'   
+#' # Dummy alignment of spectrum with itself:
+#'   ex1                 <-  wavelengthAlign( ref = spectra , toAlign = spectra )
+#' # Alignment of list of spectra with a reference spectrum:
+#'   ex2                 <-  wavelengthAlign( ref = spectra , toAlign = listOfSpectra )
+#' @return one or a list of \code{\link{SpectraInTime-class}}
 #' @export
  setMethod( wavelengthAlign , signature = c( "SpectraInTime" , "SpectraInTime" ) , definition = function( ref , toAlign ) {
 			 wavelengthAlign.SpectraInTime( ref = ref , toAlign = toAlign )

@@ -26,32 +26,58 @@
 #' times when random seeding is used, to avoid a suboptimal solution
 #' @param subsamplingFactor subsampling factor used during NMF analysis
 #' @param checkDivergence Boolean indicating whether divergence checking should be performed
-#' @return Scaled NMF model (in accordance with the NMF package definition)
+#' @param maxIter maximum number of iterations per NMF run 
+#' @param includeRefs boolean, indicating whether references should be included in the input matrix for the NMF analysis
+#' @return \code{\link{SpectraInTimeComp-class}} which includeds a scaled NMF model (in accordance with the NMF package definition)
+#' @examples
+#' \donttest{
+#'  spectralExample    <-  getSpectraInTimeExample()
+#'  nmfResult          <-  spectralNMF( spectralExample , rank = 2 , subsamplingFactor = 5 )
+#'   nmfObject         <-  getDimensionReduction( nmfResult , type = "NMF")$NMF
+#'   nmfTrends         <-  t( NMF::coef( nmfObject ) )
+#'   matplot( nmfTrends , type = "l" , x = getTimePoints( spectralExample , timeUnit = "hours"  ),
+#' 		 xlab = "time in hours"  )
+#' }
 #' @author Nicolas Sauwen
+#' @return \code{\link{SpectraInTimeComp-class}}
 #' @export
-spectralNMF        <- function ( object , rank, method = "PGNMF", initSpectralData = NULL, nruns = 10, subsamplingFactor = 3, checkDivergence = TRUE) {
+spectralNMF        <- function ( object , rank, method = "PGNMF", initSpectralData = NULL,
+		nruns = 10, subsamplingFactor = 1, checkDivergence = TRUE, maxIter = 1000, includeRefs = FALSE) {
   
   spectra          <- getNMFInputMatrix( object , method)
-  seed             <- initializeNMFModel( initSpectralData, spectra = spectra, wavelengths = getWavelengths( object ) )
+
+  if(includeRefs) { # added for THz Raman
+	  spectra <- cbind(spectra, initSpectralData) 
+	  timePointsList <- NULL
+  } else{
+	  timePointsList <- list()
+	  timePointsList[[1]] <- getTimePoints( object )
+  }
+  seed             <- initializeNMFModel( initSpectralData, spectra = spectra, spectralAxis = getSpectralAxis( object ) )
   # Check if NMF initialization is consistent with specified rank
   if(!is.null(seed)){
-	  W0               <- basis(seed)
+	  W0               <- NMF::basis(seed)
+	  H0			   <- NMF::coef(seed)
 	  if(ncol(W0) > rank) {
 		  stop("Number of provided pure component spectra is larger than specified NMF rank.")    
 	  }
 	  else if(ncol(W0) < rank){
 		  # In that case we complete the initial matrix with random sources
 		  warning("Number of specified source components is lower than specified rank. Source matrix will be completed with random vectors.")
-		  nruns <- 10
+#		  nruns <- 10
 #		  checkDivergence <- FALSE
 	  }
+	  if(method != "semiNMF" & (length(which(W0<0)) != 0 | length(which(H0<0)) != 0)){
+		  stop("Improper NMF initialization. Provided initialization contains negative values.") 
+	  }
   }
-  timePointsList <- list()
-  timePointsList[[1]] <- getTimePoints( object )
-  NMFResult         <- runNMF(spectra, rank, method, seed, nruns, checkDivergence, timePointsList, subsamplingFactor)
+
+  NMFResult         <- runNMF(spectra, rank, method, seed, nruns, checkDivergence, timePointsList, subsamplingFactor, maxIter)
   NMFResult         <- NMFResult[[1]]
-  NMFResult        <- scaleNMFResult( NMFResult )
-  return(NMFResult)
+  NMFResult         <- scaleNMFResult( NMFResult )
+  nmfSettings       <-  list(  rank = rank , method = method , initSpectralData = initSpectralData , nruns = nruns, subsamplingFactor = subsamplingFactor , checkDivergence = checkDivergence) # remove function name and spectral object from the list
+  nmfSlot           <-  list( NMF = NMFResult , settings = nmfSettings , experimentsUsed =  getExperimentName( object ) )
+  SpectraInTimeComp( object , dimensionReduction = list( NMF = nmfSlot )  )
 }
 
 
@@ -65,27 +91,31 @@ spectralNMF        <- function ( object , rank, method = "PGNMF", initSpectralDa
 #' @param nruns number of NMF runs.
 #' @param subsamplingFactor subsampling factor used during NMF analysis
 #' @param checkDivergence Boolean indicating whether divergence checking should be performed
-#' @return list of NMF models
+#' @param maxIter maximum number of iterations per NMF run
+#' @examples 
+#' \donttest{
+#' 
+#'    spectralData    <-  getListOfSpectraExample()
+#'    spectraWithNmf  <-  spectralNMFList( spectralData , rank = 2 )
+#' }
+#' @return list of \code{\link{SpectraInTimeComp-class}}
 #' @importFrom NMF basis coef nmfModel
 #' @author Nicolas Sauwen
 #' @export
-spectralNMFList             <-  function( objectList ,  rank , method = "PGNMF" , initSpectralData = NULL, nruns = 10, subsamplingFactor = 3, checkDivergence = TRUE) {
-  
-#  spectra                   <- c() # suggestion better preset object size than growing 
+spectralNMFList             <-  function( objectList ,  rank , method = "PGNMF" , initSpectralData = NULL, nruns = 10, subsamplingFactor = 3, checkDivergence = TRUE, maxIter = 1000) {
   timePointsList            <- list()
-  nObservations 			<- 0
-  nWavelengths 				<- ncol(   getSpectra( objectList[[1]] ) )
+  nObservations 			      <- 0
+  nWavelengths 				      <- ncol(   getSpectra( objectList[[1]] ) )
   
   for( iFile in 1:length(objectList)) {
     nObservations            <-  nObservations + nrow(  getSpectra( objectList[[iFile]] ) )
   }
   
-  spectra <- matrix(0, nWavelengths, nObservations)
+  spectra <- matrix(0, nWavelengths, nObservations) # initialize object
   count <- 1 # Counter keeps track of where to put the data matrices per experiment in the global spectra matrix
   
-  #suggestion seq_along , evem better avoid for loop , use seperate function parts  
-  for( iFile in 1:length(objectList)) {
-    spectra_temp            <-  getNMFInputMatrix(objectList[[iFile]])
+  for( iFile in seq_along (objectList)) {
+    spectra_temp            <-  getNMFInputMatrix(objectList[[iFile]], method)
     count_temp 				<- ncol(spectra_temp)
     if(nrow(spectra_temp) != nrow(spectra)) {
       stop("NMF analysis cannot be executed. Please make sure all spectral files cover the same wavelength range.")    
@@ -95,47 +125,35 @@ spectralNMFList             <-  function( objectList ,  rank , method = "PGNMF" 
     count <- count + count_temp
   }
   
-  seed             <- initializeNMFModel(initSpectralData, spectra = spectra, wavelengths = getWavelengths( objectList[[1]] ) )
+  seed             <- initializeNMFModel(initSpectralData, spectra = spectra, spectralAxis = getSpectralAxis( objectList[[1]] ) )
   # Check if NMF initialization is consistent with specified rank
-  W0               <- basis(seed)
-  if(ncol(W0) > rank) {
-    stop("Number of provided pure component spectra is larger than specified NMF rank.")    
+  W0               <- NMF::basis( seed )
+  if( !is.null( W0 ) ){ # check dimension when there is initialization matrix
+    if( ncol(W0) > rank ) { 
+      stop("Number of provided pure component spectra is larger than specified NMF rank.")    
+    }
+    else if( ncol(W0) < rank ){
+      # In that case we complete the initial matrix with random sources
+      warning( "Number of specified source components is lower than specified rank. Source matrix will be completed with random vectors." )
+      nruns <- 10
+      checkDivergence <- FALSE
+    }
   }
-  else if(ncol(W0) < rank){
-    # In that case we complete the initial matrix with random sources
-    warning("Number of specified source components is lower than specified rank. Source matrix will be completed with random vectors.")
-    nruns <- 10
-    checkDivergence <- FALSE
-  }
-  NMFResultList        <- runNMF(spectra, rank, method, seed, nruns, checkDivergence, timePointsList, subsamplingFactor)
-  
-  return(NMFResultList)
-}
 
-
-if( 0 == 1 ) {
-  # check NFM function in combination with spectralApps helper functions
-  library( spectralApps )
-  allSPCData        <-  loadAllobjects(dataDir)
-  data              <-  stackSpcData( data , wavelengthSelect = c( 650, 1800 ) , 
-      timeSelect = c(1, 5) )
-  spectra          <-  data
-  rank             <-  2
-  method = "PGNMF"
-  seed = NULL
-  nruns = 10
-  checkDivergence = NULL 
+  NMFResultList        <- runNMF(spectra, rank, method, seed, nruns, checkDivergence, timePointsList, subsamplingFactor, maxIter)
+  NMFResultList        <- lapply(NMFResultList, scaleNMFResult)
   
-  # bug spectral NMF 
+  ## return list of SpectraInTimeComp with appropriate settings
+  nmfSettings       <-  list(  rank = rank , method = method , initSpectralData = initSpectralData , nruns = nruns, subsamplingFactor = subsamplingFactor , checkDivergence = checkDivergence) 
+  experimentsUsed    <-  unname( sapply( objectList , getExperimentName ) )
+      
+  spectraInTimeCompList   <-  mapply( spec = objectList, nmf = NMFResultList , FUN = function( spec , nmf ){
+        nmfSlot           <-  list( NMF = nmf , settings = nmfSettings , experimentsUsed = experimentsUsed )
+        SpectraInTimeComp( spec , dimensionReduction = list( NMF = nmfSlot )  ) 
+      } 
+  )
   
-  runNMF( spectra = dataForNMF , rank = NCOMPONENTS , seed = initNmfModel ,
-      subsamplingFactor = 3 , timePointsList = list( timePoints  = 1: dim(dataForNMF )[2] )  )
-  
-  spectra = dataForNMF ; rank = NCOMPONENTS ; seed = initNmfModel ;
-  subsamplingFactor = 3 ; timePointsList = list( timePoints  = 1: dim(dataForNMF )[2] ) 
-  
-  method = "PGNMF";  nruns = 10; checkDivergence = NULL; timePointsList = NULL; subsamplingFactor = 3
-  
+spectraInTimeCompList
 }
 
 #' Actual NMF analysis
@@ -150,6 +168,7 @@ if( 0 == 1 ) {
 #' @param checkDivergence Boolean indicating whether divergence checking should be performed, defaults to \code{TRUE}
 #' @param timePointsList list of time point vectors of the individual experiments
 #' @param subsamplingFactor subsampling factor used during NMF analysis
+#' @param maxIter maximum number of iterations per NMF run
 #' @return Resulting NMF model (in accordance with the NMF package definition)
 #' @importFrom NMF basis nmf nmfAlgorithm setNMFMethod
 #' @importFrom hNMF HALSacc PGNMF semiNMF
@@ -157,7 +176,7 @@ if( 0 == 1 ) {
 #' @importFrom utils combn
 #' @author Nicolas Sauwen
 #' @export
-runNMF                      <-  function (spectra, rank, method = "PGNMF", seed = NULL, nruns = 10, checkDivergence = TRUE, timePointsList = NULL, subsamplingFactor = 3) {
+runNMF                      <-  function (spectra, rank, method = "PGNMF", seed = NULL, nruns = 10, checkDivergence = TRUE, timePointsList = NULL, subsamplingFactor = 3, maxIter = 1000) {
   
 #  # Check if NMF method is already available in the NMF package
 #  strComp                  <- match( nmfAlgorithm() , method )
@@ -166,14 +185,14 @@ runNMF                      <-  function (spectra, rank, method = "PGNMF", seed 
 #  }
   nTimePoints <- ncol(spectra)
   
+  sampleInds <- seq(1,ncol(spectra),subsamplingFactor)
   if(subsamplingFactor != 1) {
-    sampleInds <- seq(1,ncol(spectra),subsamplingFactor)
     spectra        <- spectra[, sampleInds]
     if( !is.null( seed ) ) {
-      W0           <- basis(seed) 
-      H0           <- coef(seed)
+      W0           <- NMF::basis(seed) 
+      H0           <- NMF::coef(seed)
       H0           <- H0[, seq(1,ncol(H0),subsamplingFactor), drop = FALSE] 
-      seed         <- nmfModel( W = W0 , H = H0 )
+      seed         <- NMF::nmfModel( W = W0 , H = H0 )
     }
   }
   
@@ -186,18 +205,18 @@ runNMF                      <-  function (spectra, rank, method = "PGNMF", seed 
 	for(iRun in 1:nruns) {	
 		W0 <- matrix(runif(rank*nrow(spectra)), nrow = nrow(spectra), ncol = rank)	
 		H0 <- matrix(runif(rank*ncol(spectra)), nrow = rank, ncol = ncol(spectra))	
-		seed <- nmfModel( W = W0 , H = H0 )
+		seed <- NMF::nmfModel( W = W0 , H = H0 )
 		if(method == "PGNMF"){
-			NMFResult_temp <- PGNMF(spectra, nmfMod = seed, checkDivergence = F)
+			NMFResult_temp <- PGNMF(spectra, nmfMod = seed, checkDivergence = F, maxIter = maxIter)
 		}
 		else if(method == "HALSacc"){
-			NMFResult_temp <- HALSacc(spectra, nmfMod = seed, checkDivergence = F)
+			NMFResult_temp <- HALSacc(spectra, nmfMod = seed, checkDivergence = F, maxiter = maxIter)
 		}
 		else if(method == "semiNMF"){
-			NMFResult_temp <- semiNMF(spectra, nmfMod = seed, checkDivergence = F)
+			NMFResult_temp <- semiNMF(spectra, nmfMod = seed, checkDivergence = F, maxiter = maxIter)
 		}
-		W_temp <- basis(NMFResult_temp)
-		H_temp <- coef(NMFResult_temp)
+		W_temp <- NMF::basis(NMFResult_temp)
+		H_temp <- NMF::coef(NMFResult_temp)
 		residu_temp <- norm(spectra - W_temp%*%H_temp,'f')
 		if(residu_temp < residu) {
 			NMFResult <- NMFResult_temp
@@ -207,16 +226,16 @@ runNMF                      <-  function (spectra, rank, method = "PGNMF", seed 
   }
   else{
 #      NMFResult             <-  nmf( spectra , rank = rank , method = get(method) , nrun = 1 , seed = seed , checkDivergence = checkDivergence, .options = "-p" )
-	  W0 <- basis(seed)
+	  W0 <- NMF::basis(seed)
 	  if(ncol(W0) == rank) {
 		  if(method == "PGNMF"){
-			  NMFResult <- PGNMF(spectra, nmfMod = seed, checkDivergence = checkDivergence)
+			  NMFResult <- PGNMF(spectra, nmfMod = seed, checkDivergence = checkDivergence, maxIter = maxIter)
 		  }
 		  else if(method == "HALSacc"){
-			  NMFResult <- HALSacc(spectra, nmfMod = seed, checkDivergence = checkDivergence)
+			  NMFResult <- HALSacc(spectra, nmfMod = seed, checkDivergence = checkDivergence, maxiter = maxIter)
 		  }
 		  else if(method == "semiNMF"){
-			  NMFResult <- semiNMF(spectra, nmfMod = seed, checkDivergence = checkDivergence)
+			  NMFResult <- semiNMF(spectra, nmfMod = seed, checkDivergence = checkDivergence, maxiter = maxIter)
 		  }
 	  }
 	  else { # This means that the source matrix has to be completed with random vector(s)
@@ -225,25 +244,25 @@ runNMF                      <-  function (spectra, rank, method = "PGNMF", seed 
 		  residu <- Inf
 		  W0_orig <- W0
 		  
-		  for(iRun in 1:ceiling(nruns/2)) {	
-			  W0 <- completeSourceMatrix(W0_orig, rank)
+		  for(iRun in 1:nruns) {	
+			  W0 <- completeSourceMatrix(W0_orig, rank, method)
 			  seed <- initializeNMFModel( initSpectralData = W0, spectra = spectra)
 			  iter <- 1
-			  maxIter <- 4
+			  maxIter2 <- 20
 			  overlap <- FALSE # Boolean to indicate when random source vectors start overlapping too much with initialized sources
 			  NMFResult_prev <- NULL
-			  while(iter <= maxIter & !overlap) { #This repetition is done to be able to keep using checkDivergence = T (although with start initialization with 1 random vector)
+			  while(iter <= maxIter2 & !overlap) { #This repetition is done to be able to keep using checkDivergence = T (although with start initialization with 1 random vector)
 				  if(method == "PGNMF"){
-					  NMFResult_temp <- PGNMF(spectra, nmfMod = seed, checkDivergence = T)
+					  NMFResult_temp <- PGNMF(spectra, nmfMod = seed, checkDivergence = T, maxIter = maxIter)
 				  }
 				  else if(method == "HALSacc"){
-					  NMFResult_temp <- HALSacc(spectra, nmfMod = seed, checkDivergence = T)			  
+					  NMFResult_temp <- HALSacc(spectra, nmfMod = seed, checkDivergence = T, maxiter = maxIter)			  
 				  }
 				  else if(method == "semiNMF"){
-					  NMFResult_temp <- semiNMF(spectra, nmfMod = seed, checkDivergence = T)
+					  NMFResult_temp <- semiNMF(spectra, nmfMod = seed, checkDivergence = T, maxiter = maxIter)
 				  }
 				  NMFResult_temp <- scaleNMFResult(NMFResult_temp)
-				  W_temp <- basis(NMFResult_temp)
+				  W_temp <- NMF::basis(NMFResult_temp)
 				  checkOverlapMat <- t(W_temp)%*%W_temp
 				  checkOverlapInds <- upper.tri(checkOverlapMat)
 				  if(ncol(W0_orig) > 1){
@@ -261,8 +280,8 @@ runNMF                      <-  function (spectra, rank, method = "PGNMF", seed 
 				  seed <- initializeNMFModel( initSpectralData = W_temp, spectra = spectra)				  
 				  iter <- iter + 1
 			  }
-			  W_temp <- basis(NMFResult_temp)
-			  H_temp <- coef(NMFResult_temp)
+			  W_temp <- NMF::basis(NMFResult_temp)
+			  H_temp <- NMF::coef(NMFResult_temp)
 			  residu_temp <- norm(spectra - W_temp%*%H_temp,'f')
 			  if(residu_temp < residu) {
 				  NMFResult <- NMFResult_temp
@@ -273,11 +292,11 @@ runNMF                      <-  function (spectra, rank, method = "PGNMF", seed 
   }
   
   # Split abundances per file and save in a list of NMF model objects 
-  W <- basis(NMFResult)
-  H <- coef(NMFResult)
+  W <- NMF::basis(NMFResult)
+  H <- NMF::coef(NMFResult)
   
   if(is.null(timePointsList)) {
-    timePointsList <- c(1:nTimePoints)
+    timePointsList <- list(1:nTimePoints)
   }
   
   NMFResultList  <- list()
@@ -299,7 +318,10 @@ runNMF                      <-  function (spectra, rank, method = "PGNMF", seed 
       ind1       <- ind1 + floor((length(timePointsList[[iFile]])-shift1-1)/subsamplingFactor) + 1
       ind2       <- ind2 + floor((length(timePointsList[[iFile+1]])-shift2-1)/subsamplingFactor) + 1
     }
-    NMFResultList[[iFile]] <- nmfModel(W = W_temp, H = H_temp)
+	dimnames(W_temp) <- NULL
+	dimnames(H_temp) <- NULL
+	NMFResultList[[iFile]] <- NMF::nmfModel(W = W_temp, H = H_temp)
+	colnames(NMF::basis(NMFResultList[[iFile]])) <- colnames(W)
     if(subsamplingFactor != 1) {
       NMFResultList[[iFile]]      <- upsampleNMFResult(NMFResultList[[iFile]], timePointsList[[iFile]], subsamplingFactor, shift1)
       NMFResultList[[iFile]]      <- scaleNMFResult(NMFResultList[[iFile]])
@@ -312,7 +334,9 @@ runNMF                      <-  function (spectra, rank, method = "PGNMF", seed 
 
 
 
-#' Extract spectral input matrix from SPC file and condition properly for NMF
+#' Get spectralData as input NMF model
+#' 
+#' Extract spectral input matrix from \code{\link{SpectraInTime-class}} and condition properly for NMF modeling
 #' 
 #' @param object object of the 'spectralData' class, such as a raw SPC file
 #' @param method name of the NMF method to be used.
@@ -357,8 +381,8 @@ if( 0 == 1 ) {
 # debug not working in app 
   initSpectralData           <-  NULL
   W0Init                     <-  nonNegativePreprocessing( initialization )
-  W0 = W0Init  ; spectra = dataForNMF ; wavelengths = dataInput$wavelengths
-  initNmfModel               <-  initializeNMFModel( W0 = W0Init  , spectra = dataForNMF ,  wavelengths = dataInput$wavelengths )   
+  W0 = W0Init  ; spectra = dataForNMF ; spectralAxis = dataInput$spectralAxis
+  initNmfModel               <-  initializeNMFModel( W0 = W0Init  , spectra = dataForNMF ,  spectralAxis = dataInput$spectralAxis )   
   
 }
 
@@ -367,12 +391,13 @@ if( 0 == 1 ) {
 #' @param initSpectralData this can be a list of spectralData objects, containing 
 #' the pure component spectra. It can also be either of the NMF factor matrices with initial values 
 #' @param spectra spectral matrix, with wavelengths as its rows and time points as its columns
-#' @param wavelengths vector of wavelength values
+#' @param spectralAxis vector of wavelength/spectralAxis values
 #' @importFrom nnls nnls
 #' @importFrom stats coefficients approx
 #' @importFrom NMF nmfModel
+#' @return an object that inherents from the class \code{\link[NMF]{NMF}}
 #' @export
-initializeNMFModel     <- function(initSpectralData, spectra, wavelengths = NULL) {
+initializeNMFModel     <- function(initSpectralData, spectra, spectralAxis = NULL) {
   if( !is.list( initSpectralData ) & !is.matrix( initSpectralData ) ){
     NMFInit            <- NULL
     return(NMFInit)
@@ -382,13 +407,13 @@ initializeNMFModel     <- function(initSpectralData, spectra, wavelengths = NULL
     W0                 <-  matrix( 0 , nrow(spectra), rank)
     
     for(iList in 1:rank) {
-      wavelengths_0    <-  getWavelengths( initSpectralData[[iList]] )
+      spectralAxis_0    <-  getSpectralAxis( initSpectralData[[iList]] )
       spectra_0        <- getSpectra( initSpectralData )[[iList]][1,]
-      if(abs(wavelengths[1] - wavelengths_0[1]) > 1e-3 | abs(wavelengths[length(wavelengths)] - wavelengths_0[length(wavelengths_0)]) > 1e-3) {
+      if(abs(spectralAxis[1] - spectralAxis_0[1]) > 1e-3 | abs(spectralAxis[length(spectralAxis)] - spectralAxis_0[length(spectralAxis_0)]) > 1e-3) {
         stop("Please make sure the pure component SPC files cover the same wavelength range as the input SPC file(s).")    
       }
-      if(length(wavelengths) != length(wavelengths_0)) {
-        spectra_0      <- approx(wavelengths_0, spectra_0, xout = wavelengths) 
+      if(length(spectralAxis) != length(spectralAxis_0)) {
+        spectra_0      <- approx(spectralAxis_0, spectra_0, xout = spectralAxis) 
         spectra_0      <- spectra_0$y
       }    
       W0[,iList]       <-  spectra_0
@@ -434,13 +459,21 @@ initializeNMFModel     <- function(initSpectralData, spectra, wavelengths = NULL
   N_H0               <- matrix(N0,nrow = nrow(H0),ncol = ncol(H0))
   H0                 <- H0*N_H0
   
-  NMFInit            <-  nmfModel( W = W0 , H = H0 )
+  # Avoid H0 having zero rowSum
+  scoresSums <- rowSums(H0)
+  eps <- 1e-12
+  zeroInd <- which(scoresSums < eps)
+  if(length(zeroInd) > 0) H0[zeroInd, ] <- eps
+  
+  NMFInit            <-  NMF::nmfModel( W = W0 , H = H0 )
   NMFInit            <-  scaleNMFResult(NMFInit)
   
   return(NMFInit)
 }
 
 
+#' Apply fixed scaling to NMF model
+#' 
 #' Apply fixed scaling to NMF model matrices by normalizing the basis vectors
 #' 
 #' @param NMFResult Fitted NMF model
@@ -450,11 +483,11 @@ initializeNMFModel     <- function(initSpectralData, spectra, wavelengths = NULL
 #' @export
 scaleNMFResult      <- function(NMFResult) {
   
-  W                 <- basis(NMFResult)
+  W                 <- NMF::basis(NMFResult)
   N                 <- sqrt(diag(t(W)%*%W))
   N_W               <- matrix(N,nrow = nrow(W),ncol = ncol(W),byrow = T)
   W                 <- W/N_W
-  H                 <- coef(NMFResult)
+  H                 <- NMF::coef(NMFResult)
   N_H               <- matrix(N,nrow = nrow(H),ncol = ncol(H))
   H                 <- H*N_H
   NMF::basis(NMFResult)  <- W
@@ -464,8 +497,10 @@ scaleNMFResult      <- function(NMFResult) {
 }
 
 
-#' Check if any of the source vectors in the initialized NMF model are redundant, 
-#' and should be omitted from the actual NMF analysis
+#' Check for redunt NMF source vectors
+#' 
+#' Check if any of the source vectors in the initialized NMF model are redundant
+#'  and should be omitted from the actual NMF analysis
 #' 
 #' @param seed nmfModel object containing initialization of the factor matrices
 #' @return boolean vector, indicating which source vector(s) are redundant
@@ -497,6 +532,8 @@ removeRedundantSources <- function(seed, redundantSources) {
   return(seedNew)
 }
 
+#' Re-introduce redundant sources in NMF-model
+#' 
 #' Re-introduce redundant source vectors and corresponding zero abundances 
 #' into final NMF result
 #' 
@@ -544,7 +581,7 @@ includeRedundantSources <- function(NMFResult, seed_orig, redundantSources) {
 #' @importFrom stats approx
 #' @author Nicolas Sauwen
 upsampleNMFResult <- function(NMFResult, timePoints, subsamplingFactor, shift = 0) {
-  H_subsamp <- coef(NMFResult)
+  H_subsamp <- NMF::coef(NMFResult)
   timePoints_subsamp <- timePoints[seq(1+shift,length(timePoints),subsamplingFactor)]
 #  H <- apply(H_subsamp, 1, approx, x = timePoints_subsamp, xout = timePoints)
   H <- matrix(0, nrow(H_subsamp), length(timePoints))
@@ -559,12 +596,18 @@ upsampleNMFResult <- function(NMFResult, timePoints, subsamplingFactor, shift = 
 #' complete source matrix
 #' @importFrom stats runif
 #' @keywords internal
-completeSourceMatrix <- function(W0, rank) {
+completeSourceMatrix <- function(W0, rank, method) {
 	
 	extraComponents <- rank - ncol(W0)
-	for(i in 1:extraComponents) {
-		W0 <- cbind(W0, runif(nrow(W0)))
-	}
+	if(method == "semiNMF"){
+		for(i in 1:extraComponents) {
+			W0 <- cbind(W0, runif(nrow(W0), -1, 1))
+		}
+	} else{
+		for(i in 1:extraComponents) {
+			W0 <- cbind(W0, runif(nrow(W0), 0, 1))
+		}
+	}	
 	return(W0)
 }
 
@@ -592,7 +635,10 @@ predictNNLS <- function(object, NMFResult) {
 }
 
 
+#' NMF relative residual per observation
+#' 
 #' Compute relative residual per observation of an NMF fit to a spectral data set
+#' 
 #' @param object \code{\link{SpectraInTime-class}}
 #' @param NMFResult Fitted NMF model
 #' @return Dataframe, containing time (observation) vector and residual vector
@@ -603,7 +649,7 @@ computeNMFResidu <- function(object, NMFResult) {
 	
 	timePts <- getTimePoints(object)
 	spectra <- t(getSpectra(object))
-	residu <- hNMF::residualNMF(spectra, NMFResult)
+	residu <- residualNMF(spectra, NMFResult)
 	
 	return(data.frame(time=timePts, residu=residu))
 	

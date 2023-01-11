@@ -11,7 +11,7 @@ addPreprocessingStep(object, newSpectra, preprocessingInfo)
 
 \item{newSpectra}{numeric matrix new spectral data}
 
-\item{list}{of preprocessing info}
+\item{preprocessingInfo}{list of preprocessing info}
 }
 \value{
 code{\link{SpectraInTime-class}}

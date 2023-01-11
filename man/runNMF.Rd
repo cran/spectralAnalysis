@@ -4,8 +4,17 @@
 \alias{runNMF}
 \title{Actual NMF analysis}
 \usage{
-runNMF(spectra, rank, method = "PGNMF", seed = NULL, nruns = 10,
-  checkDivergence = TRUE, timePointsList = NULL, subsamplingFactor = 3)
+runNMF(
+  spectra,
+  rank,
+  method = "PGNMF",
+  seed = NULL,
+  nruns = 10,
+  checkDivergence = TRUE,
+  timePointsList = NULL,
+  subsamplingFactor = 3,
+  maxIter = 1000
+)
 }
 \arguments{
 \item{spectra}{spectral input matrix, with wavelengths as its rows and time points as its columns}
@@ -25,6 +34,8 @@ times when random seeding is used, to avoid a suboptimal solution}
 \item{timePointsList}{list of time point vectors of the individual experiments}
 
 \item{subsamplingFactor}{subsampling factor used during NMF analysis}
+
+\item{maxIter}{maximum number of iterations per NMF run}
 }
 \value{
 Resulting NMF model (in accordance with the NMF package definition)

@@ -7,6 +7,9 @@
 \usage{
 getProcessTimesExample()
 }
+\value{
+\code{\link{ProcessTimes-class}}
+}
 \description{
 get a minimal \code{\link{ProcessTimes-class}} example based on 
 \code{\link{getSpectraInTimeExample}}

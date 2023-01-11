@@ -5,8 +5,7 @@
 \alias{readSpectra}
 \alias{save}
 \alias{read}
-\alias{readSpectra}
-\title{save a \code{\link{SpectraInTime-class}}  as a \code{.txt} file}
+\title{read or save a \code{\link{SpectraInTime-class}} from or to a  \code{.txt} file}
 \usage{
 saveSpectra(object, directory, precision = 32)
 
@@ -23,9 +22,11 @@ readSpectra(file)
 }
 \value{
 the path to which the file is saved
+
+\code{\link{SpectraInTime-class}}
 }
 \description{
-save a \code{\link{SpectraInTime-class}}  as a \code{.txt} file
+read or save a \code{\link{SpectraInTime-class}} from or to a  \code{.txt} file
 }
 \note{
 experiment name is used to save the experiment
@@ -36,7 +37,7 @@ some data precession is lost because of internal conversion to JSON format
 }
 \examples{
   \dontshow{ directory       <-  tempdir() } 
-  spectra         <-  getSpectraInTimeExample()
+ spectra         <-  getSpectraInTimeExample()
  saveSpectra(  spectra , directory )
  experimentName  <-  getExperimentName( spectra )
  file            <-  file.path( directory , paste0( experimentName , ".txt")  )

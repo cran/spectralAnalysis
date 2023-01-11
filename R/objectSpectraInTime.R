@@ -1,11 +1,3 @@
-# Project: spectralAnalysis-R-package
-# 
-# Author: Adriaan Blommaert
-# Version: 3.1
-#  changes:
-#       *  extraInfo slot as list 
-###############################################################################
-
 
 
 #' @include allGenericFunctions.R
@@ -17,14 +9,14 @@ NULL
 validitySpectraInTime         <-  function( object ) {
   errors                      <-  character()
   ## check dimensions 
-  nWavelengths                <-  length( object@wavelengths )
+  nWavelengths                <-  length( object@spectralAxis )
   nTimePoints                 <-  length( object@timePoints )
   dimSpectra                  <-  dim( object@spectra )
-  checkWavelengthDim          <-  dimSpectra[ 2 ] ==  nWavelengths
+  checkSpectralDim          <-  dimSpectra[ 2 ] ==  nWavelengths
   checkTimeDim                <-  dimSpectra[ 1 ] ==  nTimePoints
   
-  if( ! checkWavelengthDim  ) {
-    errors                    <-  addMessage( errors , "spectra do not match wavelength dimensions"  )
+  if( ! checkSpectralDim  ) {
+    errors                    <-  addMessage( errors , "spectra do not match spectral dimensions"  )
   }
   if( ! checkTimeDim ) {
     errors                    <-  addMessage( errors ,  "spectra do not match with time dimensions" ) 
@@ -44,11 +36,17 @@ validitySpectraInTime         <-  function( object ) {
 }
 
 
-#' SpectraInTime-class (time resolved spectra ) wavelength-time data for 1 experiment
-#'
-#' @slot spectra matrix of spectral measurement with as rows timePoints and columns wavelengths 
+
+
+
+#' SpectraInTime-class 
+#' 
+#' 
+#' Time resolved spectra for one experiment
+#' 
+#' @slot spectra matrix of spectral measurement with as rows timePoints and columns spectral axis 
 #' @slot experimentName character vector with name of the experiment
-#' @slot wavelengths numeric vector of wavelengths
+#' @slot spectralAxis numeric vector of spectral values (e.g. wavelengths or mass to charge)
 #' @slot timePoints of measurement in seconds
 #' @slot timePointsAlt numeric vector of shifted time points in order to time align multiple spectral measurements in plots, by default equal to timePoints
 #' @slot extraInfo list additional information such as probe type  
@@ -63,7 +61,7 @@ SpectraInTime                  <-  setClass ( "SpectraInTime",
   slots = list(
     spectra             =  "matrix" ,
     experimentName      =  "character" ,
-    wavelengths         =  "numeric" ,  
+    spectralAxis         =  "numeric" ,  
     timePoints          =  "numeric" , 
     timePointsAlt       =  "numeric" , 
     extraInfo           =  "list",
@@ -76,18 +74,7 @@ SpectraInTime                  <-  setClass ( "SpectraInTime",
 
 setValidity( "SpectraInTime" , validitySpectraInTime )
 
-### Artificial example
-if( 0 == 1 ) {
-  plot(  x = wavelengths , y = spectralDataMatrix[  , 1  ] , type = "l" , lwd = 2.5 )
-  lines( x = wavelengths , y = spectralDataMatrix[  , 200  ] , type = "l" , lwd = 2.5 , col = "darkgreen" )
-  lines( x = wavelengths , y = spectralDataMatrix[  , 400  ] , type = "l" , lwd = 2.5  , col = "green" )  
-  spectrum3DPlot( getSpectralDataExample() ) # strange cut in 3 parts
-  library(plot3D)
-  data  <-  getSpectralDataExample()
-  str( data )
-  persp( x = data@timePoints, y = data@wavelengths , z = data@spectra , phi = 45, theta = 45  )
 
-}
 
 #' Artificial example \code{\link{SpectraInTime-class}}
 #' 
@@ -96,10 +83,10 @@ if( 0 == 1 ) {
 #' @export
 #' @examples 
 #' ex1  <-   getSpectraInTimeExample()
-#' ex2  <-  getSpectraInTimeExample( showPlots = TRUE )
 #' @importFrom grDevices terrain.colors
 #' @importFrom graphics lines legend
 #' @importFrom stats dnorm
+#' @return \code{\link{SpectraInTime-class}}
 #' @author Adriaan Blommaert
 getSpectraInTimeExample          <-  function( showPlots = FALSE ){
   
@@ -150,7 +137,7 @@ getSpectraInTimeExample          <-  function( showPlots = FALSE ){
   ## construct spectral object 
   getSpectraInTimeExample            <-  SpectraInTime(  spectra =  spectralDataMatrix,
     experimentName        =  "ABLOMMAERT-01-00376" ,
-    wavelengths           =  wavelengths ,  
+    spectralAxis           =  wavelengths ,  
     timePoints            =  times*60*60 , 
     timePointsAlt         =  times*60*60 - 3*60*60 ,
     extraInfo             =  list() ,
@@ -171,7 +158,7 @@ getSpectraInTimeExample          <-  function( showPlots = FALSE ){
 #' @export 
 setMethod( "dim" , "SpectraInTime" , definition = function( x ) {
     dims                           <-  dim( getSpectra( x ) )
-    c( time = dims[ 1 ] , wavelength = dims[ 2 ] )
+    c( time = dims[ 1 ] , spectralAxis = dims[ 2 ] )
   }
 )
 
@@ -191,20 +178,12 @@ getDefaultSumFunc     <- function(){
 #' @param object 
 #' @param summaryFunctions a character vector of summary functions
 #' @return data.frame with first column wavelengths followed 
-#' @examples 
-#'   spectralExample   <-  getSpectraInTimeExample()
-#'   mimMaxSpec        <-  spectralAnalysis:::extractSummarySpecs( spectralExample ,
-#'  c( "min" , "max" ) )
 #' 
 #' @keywords internal 
 extractSummarySpecs          <-  function( object ,   summaryFunctions = getDefaultSumFunc() ) {
     spectra                    <-  getSpectra( object )
   
   ## function application keep wavelengths
-  if( 0 == 1 ) {
-    aFunction = mean
-    matrix    = spectra 
-  }
   applyOverWavelength         <-  function( aFunction , matrix = spectra ){
      apply( matrix , MARGIN = 2 ,  aFunction )
   }
@@ -213,7 +192,7 @@ extractSummarySpecs          <-  function( object ,   summaryFunctions = getDefa
   result                      <-  lapply( summaryFunctions , applyOverWavelength )
   resultFrame                 <-  data.frame( result )
   names( resultFrame )        <-  summaryFunctions
-  resultWithWavelengths       <-  data.frame( wavelengths = getWavelengths( object ) , resultFrame )
+  resultWithWavelengths       <-  data.frame( wavelengths = getSpectralAxis( object ) , resultFrame )
   return( resultWithWavelengths )
 }
 
@@ -233,13 +212,6 @@ SummaryByWavelengths  <-  setClass( "SummaryByWavelengths" ,
 )
 
 
-
-if( 0 == 1 ) {
-  spectralExample                 <-  getSpectraInTimeExample()
-  x                               <-  summary( spectralExample )
-  str( x ) 
-  colors = NULL # default value 
-}
 
 #' plot summary of \code{\link{SpectraInTime-class}}
 #' 
@@ -262,7 +234,7 @@ setMethod( "plot" , c( x = "SummaryByWavelengths" , y = "ANY" ) , function( x , 
     xRange               <-  x@spectralRange
     spectralSummaryTable <-  getSpectra( x )
     flagWavelengths      <-  colnames( spectralSummaryTable ) == "wavelengths"
-    wavelengths          <-  spectralSummaryTable[ , flagWavelengths ]
+    spectralAxis          <-  spectralSummaryTable[ , flagWavelengths ]
     summaryTable         <-  spectralSummaryTable[ , !flagWavelengths ]
     summaryStats         <-  colnames( summaryTable )
     nSummaryStats        <-  length( summaryStats )
@@ -290,11 +262,11 @@ setMethod( "plot" , c( x = "SummaryByWavelengths" , y = "ANY" ) , function( x , 
       
     ##  make plot
       #  basic plto
-    plot( x = wavelengths , y = NULL , ylim = yLimits , cex.axis = 1.15 , cex.lab = 1.15 ,  xlab = xLabel , ylab = yLabel ,
-      main = "Summary statistics per wavelength" )
+    plot( x = spectralAxis , y = NULL , ylim = yLimits , cex.axis = 1.15 , cex.lab = 1.15 ,  xlab = xLabel , ylab = yLabel ,
+      main = "Summary statistics per spectral value" )
       #  insert lines  # remark first and last captures by min and max 
     lapply( seq_len( nSummaryStats )  , function( iStat ) {
-        lines( x = wavelengths , y = summaryTable[ , iStat ] , col = colvec[ iStat ] , type = "l" , lwd = LINEWIDTH  )
+        lines( x = spectralAxis , y = summaryTable[ , iStat ] , col = colvec[ iStat ] , type = "l" , lwd = LINEWIDTH  )
       } 
     ) 
     # test first and last
@@ -324,7 +296,7 @@ setMethod( "summary" , "SpectraInTime" , def =  function( object , summaryFuncti
     name                            <-  getExperimentName( object )
     timeRange                       <-  range( getTimePoints( object ) )
     timeRangeAlt                    <-  range( getTimePoints( object , timePointsAlt = TRUE )  )
-    wavelengthRange                 <-  range( getWavelengths( object) )
+    spectralAxisRange                 <-  range( getSpectralAxis( object) )
     specSummary                     <-  extractSummarySpecs( object , summaryFunctions )
     unitList                        <-  getUnits( object ) 
     ## create summary object  
@@ -332,7 +304,7 @@ setMethod( "summary" , "SpectraInTime" , def =  function( object , summaryFuncti
       experimentName  = name ,
       timeRange       = timeRange ,
       timeRangeAlt    = timeRangeAlt ,
-      spectralRange   = wavelengthRange ,
+      spectralRange   = spectralAxisRange ,
       spectra         = specSummary ,
       units           = unitList
     )
@@ -361,7 +333,7 @@ setMethod( f = "getSpectra" , signature = "SummaryByWavelengths" ,
 setMethod( "show" , "SummaryByWavelengths" , function( object ) {
     cat("Experiment name =" , object@experimentName , "\n" ) 
     cat( "Time range = " , object@timeRange ,  "\n" ) 
-    cat( "Wavelength range =" , object@spectralRange , "\n" ) 
+    cat( "Spectral range =" , object@spectralRange , "\n" ) 
     print( "Summary specs:" )
 #    str( object@specSummary )
     cat("units =" )
@@ -418,11 +390,11 @@ setMethod( f = "getExperimentName" , signature = "SpectraInTime" ,
   }
 )
 
-#' @rdname getWavelengths
+#' @rdname getSpectralAxis
 #' @export
-setMethod( f = "getWavelengths" , signature = "SpectraInTime" , 
+setMethod( f = "getSpectralAxis" , signature = "SpectraInTime" , 
   definition = function( object ) { 
-    return( object@wavelengths ) 
+    return( object@spectralAxis ) 
   }
 )
 
@@ -525,22 +497,23 @@ setMethod( "lastSpectrum" , "SpectraInTime" , function( object ) {
 #' 
 #' @importFrom BiocGenerics as.data.frame
 #' @rdname SpectraInTime-class
+#' @return data.frame
 #' @export
 setMethod( "as.data.frame" , signature = "SpectraInTime" , function( x , timePointsAlt = FALSE , timeUnit = "seconds" ) {
       ## extract components
       spectra                <-  getSpectra( x )
       timePoints             <-  getTimePoints( x , timePointsAlt = timePointsAlt , timeUnit = timeUnit )
-      wavelengths            <-  getWavelengths( x )
+      spectralAxis            <-  getSpectralAxis( x )
       nTimes                 <-  length( timePoints )
-      nWavelengths           <-  length( wavelengths )
+      nWavelengths           <-  length( spectralAxis )
       
       ## convert to long format 
       spectraLong            <-  as.vector( spectra )
       timePointsLong         <-  rep( timePoints , nWavelengths )
-      wavelengthLong             <-  rep( wavelengths  ,  rep( nTimes , nWavelengths ) )
+      spectralAxisLong             <-  rep( spectralAxis  ,  rep( nTimes , nWavelengths ) )
 
       ## output data.frame 
-      output                 <-  data.frame( wavelength = wavelengthLong ,
+      output                 <-  data.frame( spectralAxis = spectralAxisLong ,
           timePoints = timePointsLong , 
           response   = spectraLong 
       )

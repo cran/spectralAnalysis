@@ -57,88 +57,6 @@ loadAllSPCFiles                   <- function( directoryFiles, selectedFiles = N
   spcFiles 
 }
 
-
-
-if( 0 == 1 ){
-  # testing 
-  xmlDirectory                   <-  "/home/ablommaert/git/processEvolutionApp/xmlFiles/example"
-  xmlFile2                       <-  file.path(xmlDirectory, "JCUYPERS-25-00504 started at 2015-10-07 on 09.18.xml" ) 
-  spcFile                        <-  file.path(xmlDirectory, "JCUYPERS-25-00504.spc" )
-  
-  
-  spcData                        <-  readSPC( spcFile, keys.log2data = TRUE )
-  str(spcData)
-  
-  spcReadIn                      <-  readSPC(spcFile)
-  
-  #debugging
-  filename = spcFile;
-  keys.hdr2data = FALSE; keys.hdr2log = FALSE;
-  
-  keys.log2data = TRUE; # why does TRUE work and false not --check difference in processing  
-  
-  
-  ## developement 
-  keys.log2log = TRUE;
-  log.txt = TRUE; log.bin = FALSE; log.disk = FALSE;
-  hdr = list ();
-  no.object = FALSE
-  
-  ## testing on pure component spectra
-  fileDir                    <-  "/home/ablommaert/git/spectralAnalysis-R-package/spectralAnalysis/inst"
-  spectralDataToluene        <-  readSPC( file.path( fileDir , "extdata/SPC_T003685 Ref_ T3685.spc"  ) , keys.log2data = TRUE ) 
-  str( spectralDataToluene )
-  
-
-  
- 
-  
-  ## General example 
-  file                       <- "/home/ablommaert/git/spectralAnalysis-R-package/dataForTesting/exampleAlignment/JCUYPERS-25-00504.spc" 
-  file                       <- "/home/ablommaert/Desktop/SPCs example/JCUYPERS-25-00493.spc" 
-  
-  exampleExperiment          <-  spectralAnalysis::readSPC( file , keys.log2data = TRUE )
-  str( exampleExperiment )
-  
-  # recostruct with  new code 
-  exampleExperimentNew       <-  readSPC( file , keys.log2data = TRUE )
-  str( exampleExperimentNew )
-  
-  # compare 
-  identical( exampleExperiment@spectra , exampleExperimentNew@spectra  ) 
-  identical( exampleExperiment@wavelengths , exampleExperimentNew@wavelengths  ) 
-  identical( exampleExperiment@timePoints , exampleExperimentNew@timePoints  ) 
-  
-  # problem time points not identical
-(tail( exampleExperiment@timePoints ) - tail( exampleExperimentNew@timePoints ) ) == 0
-indUnequalTimes                 <-  which(exampleExperiment@timePoints !=  exampleExperimentNew@timePoints)
-exampleExperiment@timePoints[ indUnequalTimes ] - exampleExperimentNew@timePoints[ indUnequalTimes ] # rounding errors? 
-
-
-  
-  # question are all time measurements eauel
-  info                       <-  exampleExperiment@backgroundInformation
-  all( info[ , 1] == info[ , 2 ] )
-  which( ( info[ , 1] == info[ , 2 ] ) == FALSE )
-  
-  # TODO are time points rounded?
-  plot( x = as.numeric( exampleExperiment@backgroundInformation$z  ) , y = exampleExperiment@timePoints ) 
-
-  lapply()
-  
-  ## simplify 
-  
-  filename <-  "/home/ablommaert/git/spectralAnalysis-R-package/dataForTesting/exampleAlignment/JCUYPERS-25-00504.spc" 
-  keys.log2data <-  TRUE
-}
-
-
-if( 0 == 1 ){
-  # test NIR example read in 
-  setwd("/home/ablommaert/git/spectralAnalysis-R-package/tempWork/NIRNoTime")
-  filename =  "dataClient/Gainer HPMC AS LG 0020580620 static spc.spc"
-}
-
 #' Read-in of a SPC file.
 #' 
 #' This function is an adaptation of the 'read.spc' function of the 'hyperSpec' package :
@@ -151,12 +69,17 @@ if( 0 == 1 ){
 #' @return \code{\link{SpectraInTime-class}}
 #' @importFrom  utils str head tail modifyList
 #' @export 
-readSPC              <- function( filename , keys.log2data = TRUE ,  keys.hdr2data = FALSE ){
+readSPC              <- function( filename , keys.log2data = TRUE ,  keys.hdr2data = FALSE){
     
     
-  ## USE FIXED SETTINGS  (for hyper spec settings defaults )
-#    keys.hdr2data = FALSE;  
-    keys.hdr2log = FALSE ; keys.log2log = FALSE;  log.txt = TRUE; log.bin = FALSE; log.disk = FALSE;  no.object = FALSE
+  ## Setting not to vary for hyperspec, keep fixed here, other settings than specified in function
+    keys.hdr2log  <- FALSE
+    keys.log2log  <-  FALSE
+    log.txt  <-  TRUE
+    log.bin  <-  FALSE
+    log.disk  <-  FALSE
+    no.object  <-  FALSE
+    
     hdr                           <-   list() # initialize header fiel 
     ## f contains the raw bytes of the file
   
@@ -240,21 +163,36 @@ readSPC              <- function( filename , keys.log2data = TRUE ,  keys.hdr2da
 #        data [s, "w"]         <- hdr$subhdr$w
     }
     
-    ## 6) process time variable 
-    if(length(backgroundInformation) == 0){
-      startDateTime         <-   as.POSIXct( "1/01/1900 00:00:00" ,  format = "%d/%m/%Y %H:%M:%S" )
-      nTimePoints           <-   dim( spc )[1]
-	  dummyTimeInterVal 	<-   60*60 
-      timePoints            <-   seq( from = 0 , by = dummyTimeInterVal ,  length.out = nTimePoints )
-      warning( "User defined time axis is set instead of instrument recorded time axis" ) 
-      
-    } else {
-      startDateTime            <-  as.POSIXct( backgroundInformation[ "Acquisition_Date_Time" ] , format = "%d/%m/%Y %H:%M:%S"  )
-      timePoints               <-  timeMeasurements   
-    }
-    
+	## 6) process time variable 
+	if(length(backgroundInformation) == 0){
+		startDateTime         <-   NA
+		nTimePoints           <-   dim( spc )[1]
+		dummyTimeInterVal 	<-   60*60 
+		timePoints            <-   seq( from = 0 , by = dummyTimeInterVal ,  length.out = nTimePoints )
+		warning( "User defined time axis is set instead of instrument recorded time axis" ) 
+		
+	} else {
+		startDateTime            <-  unname(as.POSIXct(backgroundInformation["Acquisition_Date_Time"], tryFormats = c("%d/%m/%Y %H:%M:%S", "%m/%d/%Y %I:%M:%S %p")))
+		timePoints               <-  timeMeasurements   
+	}
+	
+	## update start time
+	if(!inherits(startDateTime, "POSIXct") || is.na(startDateTime)) {
+		if(length(hdr$fdate) > 0) {
+			startDateTime <- hdr$fdate
+		} else {
+			startDateTime <- as.POSIXct( "1/01/1900 00:00:00" ,  format = "%d/%m/%Y %H:%M:%S" )
+		}
+	}
+	
+	# Make sure data are always in order of ascending wavenumber
+    if(wavelength[1] > wavelength[2]){
+		wavelength <- rev(wavelength)
+		spc <- spc[,ncol(spc):1, drop = FALSE]
+	}
+	
     ##  7) construct data elements in spectral data object 
-    new( "SpectraInTime", spectra = spc, wavelengths = wavelength, extraInfo = as.list(backgroundInformation) , timePoints = timePoints , timePointsAlt = timePoints  , startTime  =  startDateTime , units = label )
+    new( "SpectraInTime", spectra = spc, spectralAxis = wavelength, extraInfo = as.list(backgroundInformation) , timePoints = timePoints , timePointsAlt = timePoints  , startTime  =  startDateTime , units = label )
 }
 
 #####  SPC parser functions from hyperSpec (do not adapt)
@@ -476,7 +414,8 @@ raw.split.nul <- function (raw, trunc = c (TRUE, TRUE), firstonly = FALSE, paste
       month = hdr$fdate %/% 65536 %%  16,
       day   = hdr$fdate %/% 2048 %% 32,
       hour  = hdr$fdate %/% 64 %% 32,
-      min   = hdr$fdate %% 64)
+      min   = hdr$fdate %% 64,
+	  tz = "CET")
   
   ## interferogram ?
   ## if not, hdr$fpeakpt is set to NULL

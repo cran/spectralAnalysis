@@ -17,10 +17,6 @@ flag vector elements within interval (closed interval )
 \note{
 if interval is \code{NULL} then no selection  is performed
 }
-\examples{
-spectralAnalysis:::flagVectorInInterval( 1:10 , c( 4 , 7) )
-spectralAnalysis:::flagVectorInInterval( 1:10 , NULL )
-}
 \author{
 Adriaan Blommaert
 }

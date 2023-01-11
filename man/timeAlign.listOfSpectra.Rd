@@ -4,8 +4,12 @@
 \alias{timeAlign.listOfSpectra}
 \title{Align all spectra in a list}
 \usage{
-timeAlign.listOfSpectra(spectralDataList, processTimes, cutCooling,
-  cutBeforeMinTemp)
+timeAlign.listOfSpectra(
+  spectralDataList,
+  processTimes,
+  cutCooling,
+  cutBeforeMinTemp
+)
 }
 \description{
 Align all spectra in a list

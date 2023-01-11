@@ -3,7 +3,10 @@
 \docType{class}
 \name{ProcessTimesFrame-class}
 \alias{ProcessTimesFrame-class}
-\title{S4 Class key process times in a data frame, every line is convertable to a \code{\link{ProcessTimes-class} }}
+\title{ProcessTimes-class}
+\value{
+\code{\link{ProcessTimes-class}}
+}
 \description{
 S4 Class key process times in a data frame, every line is convertable to a \code{\link{ProcessTimes-class} }
 }
