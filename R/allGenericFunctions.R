@@ -293,7 +293,7 @@ setGeneric( "baselineCorrect", function( object,  ... ) {
 #' 
 #' @param object a S4 class object such as \code{\link{SpectraInTime-class}}
 #' @param ... for internal method consistency
-#' @param referenceSpectra the reference spectra when not derived from the current data, defaults to code{NULL} when \code{referenceMethod} is used 
+#' @param referenceSpectra the reference spectra when not derived from the current data, defaults to \code{NULL} when \code{referenceMethod} is used 
 #' to derive the reference spectra from the data
 #' @param referenceMethod name of the function used to derive the spectra over the data measurements, defaults to \code{"mean"} when the average spectra in the 
 #' \code{object} is used

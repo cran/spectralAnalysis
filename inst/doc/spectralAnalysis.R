@@ -5,16 +5,16 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ---- message=F, warning =F , echo = FALSE------------------------------------
+## ----message=F, warning =F , echo = FALSE-------------------------------------
 library(webshot)
 library(plotly) 
 
-## ---- echo = TRUE, message = FALSE, results = TRUE----------------------------
+## ----echo = TRUE, message = FALSE, results = TRUE-----------------------------
 library( spectralAnalysis )
 spectralEx                 <-  getSpectraInTimeExample( )
 str( spectralEx)
 
-## ---- echo = TRUE, message = FALSE, results = TRUE----------------------------
+## ----echo = TRUE, message = FALSE, results = TRUE-----------------------------
 dim( spectralEx)
 getExperimentName(spectralEx)
 getExtraInfo( spectralEx )
@@ -28,25 +28,25 @@ getTimePoints( spectralEx , timePointsAlt = TRUE )
 spectra       <-  getSpectra( spectralEx )
 dim( spectra )
 
-## ---- echo = TRUE, message = FALSE, results = TRUE----------------------------
+## ----echo = TRUE, message = FALSE, results = TRUE-----------------------------
 setTimePointsAlt( spectralEx  )  <-  getTimePoints( spectralEx )  -  200 
 
-## ---- echo = TRUE, message = FALSE, results = TRUE, error = TRUE--------------
+## ----echo = TRUE, message = FALSE, results = TRUE, error = TRUE---------------
 setTimePointsAlt( spectralEx  )  <-  getTimePoints( spectralEx ) * 5 
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  ?SpectraInTime
 
-## ---- echo = TRUE, message = FALSE, results = TRUE , eval = FALSE-------------
+## ----echo = TRUE, message = FALSE, results = TRUE , eval = FALSE--------------
 #  allSPCFiles     <- loadAllSPCFiles(directoryFiles)
 
-## ---- echo = TRUE, message = FALSE, results = TRUE----------------------------
+## ----echo = TRUE, message = FALSE, results = TRUE-----------------------------
 print( r( 2.5 , 10.8) )
 print( r( c(1 , 3 , 2 , 6 , 9 , 3 ) ) )
 
 print( e( 1, 3 ,5 ,6 ,7 ,8 ) )
 
-## ---- echo = TRUE, message = FALSE, results = TRUE----------------------------
+## ----echo = TRUE, message = FALSE, results = TRUE-----------------------------
 # range subsetting 
 spectralEx                      <-   getSpectraInTimeExample()
 spectraSubset                   <-  spectralEx[ r( 1000 , 30000 ) , r(130 , 135 ) ]
@@ -74,7 +74,7 @@ spectraSubsetElem               <-  spectralEx[ e( 1.234 , 3.579 ) ,
 getTimePoints( spectraSubsetElem , timeUnit = "hours" )
 getSpectralAxis( spectraSubsetElem  )
 
-## ---- echo = TRUE, message = FALSE, results = TRUE , eval = TRUE--------------
+## ----echo = TRUE, message = FALSE, results = TRUE , eval = TRUE---------------
 summarySpec       <-  summary( spectralEx )
 str( summarySpec )
 
@@ -99,15 +99,15 @@ plot( listOfSpectra , times = 1:3 , timeUnit = "hours" , colors = "A" )
 ## ----plotListContour, fig.cap = "Contour plot for list of SpectraInTime"------
 plot( listOfSpectra , timeUnit = "hours" , colors = "C" , type = "contour" )
 
-## ---- echo = TRUE, message = FALSE, results = TRUE----------------------------
+## ----echo = TRUE, message = FALSE, results = TRUE-----------------------------
 processTimes        <-  getProcessTimesExample() 
 processTimes
 
-## ---- echo = TRUE, message = FALSE, results = TRUE----------------------------
+## ----echo = TRUE, message = FALSE, results = TRUE-----------------------------
 processTimesFrame   <-  getProcessTimesFrameExample()
 processTimesFrame
 
-## ---- echo = TRUE, message = FALSE, results = TRUE----------------------------
+## ----echo = TRUE, message = FALSE, results = TRUE-----------------------------
 spectra             <-  getSpectraInTimeExample()
 listOfSpectra       <-  getListOfSpectraExample()
 pathProcessTimes    <-  getPathProcessTimesExample()
@@ -119,7 +119,7 @@ ex2    <-  timeAlign( x = listOfSpectra , y = processTimesFrame ,
 ex3    <-  timeAlign( x = listOfSpectra , y = pathProcessTimes ,
     cutCooling = TRUE , cutBeforeMinTemp = TRUE  , timeFormat =  "%Y-%m-%d %H:%M:%OS" )
 
-## ---- echo = TRUE-------------------------------------------------------------
+## ----echo = TRUE--------------------------------------------------------------
 exampleData1       <-  readSpectra( system.file( "exampleData/exampleExperiment1.txt" ,
         package = "spectralAnalysis") ) 
 
@@ -155,13 +155,13 @@ plot( spectralDataDerivative[ timesToShow , , timeUnit = "hours"] , type = "time
 spectralDataNormalized   <-  normalize( spectralDataSmooth , method = "integration"   )
 plot( spectralDataNormalized[ timesToShow , , timeUnit = "hours"] , type = "time" ) 
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  ?scatterCorrrect
 
 ## -----------------------------------------------------------------------------
 allSpectraDataProcessed    <-  lapply( listOfSpectra , preprocess , with = spectralDataSmooth  )
 
-## ---- results = FALSE---------------------------------------------------------
+## ----results = FALSE----------------------------------------------------------
 spectralExSelect  <-  spectralDataSmooth[ r( 0 , 5 ) , , timeUnit = "hours" ] 
 nmfResult    <-  spectralNMF( spectralExSelect , rank = 3 , subsamplingFactor = 5 )
 nmfObject    <-  getDimensionReduction( nmfResult , type = "NMF")$NMF
@@ -171,6 +171,6 @@ nmfObject    <-  getDimensionReduction( nmfResult , type = "NMF")$NMF
 nmfTrends    <-  t( NMF::coef( nmfObject ) )
 matplot( nmfTrends , type = "l" , x = getTimePoints( spectralExSelect , timeUnit = "hours"  ) , xlab = "time in hours"  )
 
-## ---- eval = FALSE------------------------------------------------------------
+## ----eval = FALSE-------------------------------------------------------------
 #  ?spectralNMF
 

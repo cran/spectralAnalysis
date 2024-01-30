@@ -34,8 +34,8 @@ plotlyAxis                       <-  function( title ) {
 #'   *  \code{"contour"} contour plot of spectra time versus spectral values
 #' @param timeUnit time unit specification in the form of a character string
 #' @param ylab Specification y-axis label. By default this is "Wavelength", but can be different for e.g. mass spectra
-#' @param colors colorblind friendly palettes are used from the de \code{\link[viridis]{viridis_pal}} choice between code{"A"} (magna),
-#'  code{"B"} (inferno),  \code{"C"} (plasma) and \code{"D"} the default viridis color palette
+#' @param colors colorblind friendly palettes are used from the de \code{\link[viridis]{viridis_pal}} choice between \code{"A"} (magna),
+#'  \code{"B"} (inferno),  \code{"C"} (plasma) and \code{"D"} the default viridis color palette
 #' @param nColors number of colours to use, only relevant if \code{type} is "contour", defaults to 200
 #' @param limits 2-element numeric vector specifying the range of values onto which the color scale should be mapped (currently only relevant if \code{type} is "contour")
 #' @rawNamespace import(plotly, except = last_plot)

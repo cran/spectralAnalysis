@@ -22,7 +22,11 @@ spectralPLSCalibration <- function(objectList, UPLC_DF, ncomp = 10){
 	
 	uniqueCompounds <- setdiff(colnames(UPLC_DF), c("experiment", "time", "min", "sample", "time_dh"))
 	Y <- matrix(0, nrow = nrow(UPLC_DF), ncol = length(uniqueCompounds))
-	Y <- as.matrix(select(UPLC_DF, uniqueCompounds))
+	Y <- as.matrix(dplyr::select(UPLC_DF, uniqueCompounds))
+	NA_colSums <- apply(Y, 2, function(x) sum(is.na(x)))
+	discardColInds <- which(NA_colSums > nrow(Y)/2)
+	if(length(discardColInds) > 0) Y <- Y[,-discardColInds]
+	Y[is.na(Y)] <- 0
 	
 	nWavelengths <- length(getSpectralAxis(objectList[[1]]))
 	X <- matrix(0, nrow = nrow(UPLC_DF), ncol = nWavelengths)
@@ -31,6 +35,10 @@ spectralPLSCalibration <- function(objectList, UPLC_DF, ncomp = 10){
 	
 	for(i in 1:length(uniqueExperimentIDs)){
 		matchInd <- grep(uniqueExperimentIDs[i], expNamesSPC)
+		if(length(matchInd) == 0){
+			matchInd <- grep(substr(uniqueExperimentIDs[i], 2, nchar(uniqueExperimentIDs[i])), expNamesSPC)
+		} 
+		if(length(matchInd) == 0) return("Mismatch in experiment name(s) between IR and UPLC datasets. PLS model could not be built.")
 		times_UPLC <- filter(UPLC_DF, .data$experiment == uniqueExperiments[i])$time
 		times_spectral <- objectList[[matchInd]]@timePoints
 		spectra <- getSpectra(objectList[[matchInd]])

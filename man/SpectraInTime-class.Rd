@@ -63,8 +63,8 @@ extractSummarySpecs(object, summaryFunctions = getDefaultSumFunc())
 
 \item{ylab}{Specification y-axis label. By default this is "Wavelength", but can be different for e.g. mass spectra}
 
-\item{colors}{colorblind friendly palettes are used from the de \code{\link[viridis]{viridis_pal}} choice between code{"A"} (magna),
-code{"B"} (inferno),  \code{"C"} (plasma) and \code{"D"} the default viridis color palette}
+\item{colors}{colorblind friendly palettes are used from the de \code{\link[viridis]{viridis_pal}} choice between \code{"A"} (magna),
+\code{"B"} (inferno),  \code{"C"} (plasma) and \code{"D"} the default viridis color palette}
 
 \item{nColors}{number of colours to use, only relevant if \code{type} is "contour", defaults to 200}
 

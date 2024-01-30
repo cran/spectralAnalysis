@@ -7,9 +7,9 @@
 changeDevSettings(defaultSettings, replaceSettings)
 }
 \arguments{
-\item{replaceSettings}{list of settings to overwrite defaults or add to defaults}
+\item{defaultSettings}{list of settings}
 
-\item{defaultsSettings}{list of settings}
+\item{replaceSettings}{list of settings to overwrite defaults or add to defaults}
 }
 \value{
 list

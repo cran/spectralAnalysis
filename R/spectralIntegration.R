@@ -15,7 +15,7 @@ NULL
 #' The integrated value over a user-specified spectral range is calculated (trapezium rule) per time point, afterwards smoothing over time can be applied 
 #' @param object \code{\link{SpectraInTime-class}}
 #' @param spectralRange numeric vector of 2 elements i.e. integration limits
-#' @param smoothingValue numeric value between 0 and 1, amount of code{\link[stats]{lowess}}-smoothing,
+#' @param smoothingValue numeric value between 0 and 1, amount of \code{\link[stats]{lowess}}-smoothing,
 #'  default to \code{0} i.e no smoothing. Note that smoothing is applied  after integration
 #' @param timeUnit character value, choose between: \code{second , minutes and hours}, defaults to 
 #'  \code{seconds}

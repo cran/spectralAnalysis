@@ -14,7 +14,7 @@ addPreprocessingStep(object, newSpectra, preprocessingInfo)
 \item{preprocessingInfo}{list of preprocessing info}
 }
 \value{
-code{\link{SpectraInTime-class}}
+\code{\link{SpectraInTime-class}}
 }
 \description{
 change the spectra and add preprocessing info, check whehther the object is valid

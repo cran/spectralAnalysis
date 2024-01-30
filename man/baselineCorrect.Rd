@@ -21,7 +21,7 @@ baselineCorrect(object, ...)
 
 \item{method}{method of baseline correction, default value is to \code{'modpolyfit'},  see \code{\link[baseline]{baseline.modpolyfit}}}
 
-\item{degree}{numeric value, degree of the polynomial used only if \code{method} is code{'modpolyfit'}}
+\item{degree}{numeric value, degree of the polynomial used only if \code{method} is \code{'modpolyfit'}}
 }
 \value{
 \code{\link{SpectraInTime-class}}

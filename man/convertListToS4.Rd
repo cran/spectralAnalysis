@@ -7,9 +7,9 @@
 convertListToS4(list, class)
 }
 \arguments{
-\item{class}{character vector indicating S4 class}
+\item{list}{list}
 
-\item{names}{list}
+\item{class}{character vector indicating S4 class}
 }
 \description{
 convert an a named list to S4 object

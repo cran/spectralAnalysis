@@ -45,9 +45,9 @@ loadAllSPCFiles                   <- function( directoryFiles, selectedFiles = N
   numberOfSplits                  <-  strsplitVectorLength(selectedFiles, splitter = ".")
   fileNames                       <-  selectPartsStrings(selectedFiles, splitter = ".", alply(numberOfSplits-1, 1, function(xx) 1:xx))
   fileExtensions                  <-  selectPartsStrings(selectedFiles, splitter = ".", as.list(numberOfSplits))
-  selectedFilesSPC                <-  selectedFiles[which(fileExtensions == "spc")] 
+  selectedFilesSPC                <-  selectedFiles[which(grepl("spc", fileExtensions, ignore.case = TRUE))] 
   
-  experimentNames                 <- fileNames[which( fileExtensions == "spc" ) ]
+  experimentNames                 <- fileNames[which(grepl("spc", fileExtensions, ignore.case = TRUE)) ]
   spcFiles                        <- list()
   for( iRun in seq_along(selectedFilesSPC) ) {
     spcFiles[[ iRun ]]              <-  readSPC( file.path( directoryFiles ,  selectedFilesSPC[ iRun ] ) ) 
@@ -661,7 +661,9 @@ raw.split.nul <- function (raw, trunc = c (TRUE, TRUE), firstonly = FALSE, paste
       log.txt <- head (log.txt, -1)
     log.txt [log.txt == .nul] <- replace.nul
     log.txt <- readChar (log.txt, length (log.txt), useBytes=T)
-    log.txt <- gsub (rawToChar (replace.nul), '\r\n', log.txt)
+	replace.nul_char <- rawToChar (replace.nul)
+	Encoding(replace.nul_char) <- 'latin1' 
+    log.txt <- gsub (replace.nul_char, '\r\n', log.txt)
     log.txt <- iconv (log.txt, iconv.from, iconv.to)
 #		log.txt <- paste (rawToChar (log.txt, multiple = TRUE), collapse = "")
     log.txt <- split.string (log.txt, "\r\n") ## spc file spec says \r\n regardless of OS
@@ -736,7 +738,7 @@ getbynames <- function (x, e) {
 
 split.string <- function (x, separator, trim.blank = TRUE, remove.empty = TRUE) {
 	pos <- gregexpr (separator, x)
-	if (length (pos) == 1 && pos [[1]] == -1)
+	if (length (pos) == 1 && pos [[1]][1] == -1)
 		return (x)
 	
 	pos <- pos [[1]]

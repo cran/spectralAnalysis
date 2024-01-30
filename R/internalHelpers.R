@@ -21,7 +21,7 @@ processValididtyErrors          <-  function( errors ) {
 #' 
 #' Changes are printed print to the console when changing default settings and adding to default settings 
 #' 
-#' @param defaultsSettings list of settings
+#' @param defaultSettings list of settings
 #' @param replaceSettings list of settings to overwrite defaults or add to defaults
 #' @return list
 #' @keywords internal 
@@ -156,7 +156,7 @@ if( 0 == 1 ) {
 
 #' convert an a named list to S4 object
 #' 
-#' @param names list
+#' @param list list
 #' @param class character vector indicating S4 class  
 #' @keywords internal
 #' @importFrom methods slot slotNames slot<-

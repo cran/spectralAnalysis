@@ -125,7 +125,7 @@ spectralBaselineCorrect            <-  function( object , method = 'modpolyfit' 
 #' 
 #' @note baseline correction in the wavelength domain by linking to the \code{\link[baseline]{baseline}}
 #' @param method method of baseline correction, default value is to \code{'modpolyfit'},  see \code{\link[baseline]{baseline.modpolyfit}}
-#' @param degree numeric value, degree of the polynomial used only if \code{method} is code{'modpolyfit'}
+#' @param degree numeric value, degree of the polynomial used only if \code{method} is \code{'modpolyfit'}
 #' @param ... other parameters passed to \code{\link[baseline]{baseline}}
 #' @examples 
 #'  spectralEx           <-  getSpectraInTimeExample()
@@ -242,7 +242,7 @@ setMethod( "smooth" , "SpectraInTimeComp"  , definition = function( object , ...
 #' @param object \code{\link{SpectraInTime-class}}
 #' @param newSpectra numeric matrix new spectral data
 #' @param preprocessingInfo list of preprocessing info
-#' @return code{\link{SpectraInTime-class}}
+#' @return \code{\link{SpectraInTime-class}}
 #' @keywords internal 
 addPreprocessingStep               <-  function( object , newSpectra , preprocessingInfo ){
   newObject                        <-  object
@@ -258,7 +258,7 @@ addPreprocessingStep               <-  function( object , newSpectra , preproces
 #' check method in list of allowd method
 #' 
 #' @param method character of method to check
-#' @param allowedMethod character vector of allowed method
+#' @param allowedMethods character vector of allowed method
 #' @return nothing just stop if method not allowed
 #' @keywords internal 
 checkMethod                      <-  function( method , allowedMethods ) {

@@ -1,6 +1,6 @@
 Package: spectralAnalysis
 Title: Pre-Process, Visualize and Analyse Spectral Data
-Version: 4.3.1
+Version: 4.3.3
 Authors@R: c( person("Robin", "Van Oirbeek", role = c("aut") ),
               person("Adriaan", "Blommaert", role = c("aut", "cre"),
                      email = "adriaan.blommaert@openanalytics.eu"),
@@ -25,7 +25,7 @@ biocViews:
 Imports: baseline, BiocGenerics, data.table, ggplot2, graphics,
         jsonlite, magrittr, methods, nnls, NMF, plotly, plyr, dplyr,
         RColorBrewer, signal, stats, viridis, hNMF, zoo, pls
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 Suggests: testthat, knitr, rmarkdown, webshot, bookdown
 Collate: 'internalHelpers.R' 'allGenericFunctions.R'
         'objectSpectraInTime.R' 'objectProcessTimes.R'
@@ -37,7 +37,7 @@ Collate: 'internalHelpers.R' 'allGenericFunctions.R'
         'subsetting.R'
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2023-01-10 16:05:25 UTC; ablommaert
+Packaged: 2024-01-29 09:55:11 UTC; SMathieu
 Author: Robin Van Oirbeek [aut],
   Adriaan Blommaert [aut, cre],
   Nicolas Sauwen [aut],
@@ -48,4 +48,4 @@ Author: Robin Van Oirbeek [aut],
   Michel Thiel [ctb],
   Claudia Beleites [ctb]
 Repository: CRAN
-Date/Publication: 2023-01-11 10:00:02 UTC
+Date/Publication: 2024-01-30 08:50:02 UTC

@@ -16,7 +16,7 @@ scatterCorrect(object, ...)
 
 \item{...}{for internal method consistency}
 
-\item{referenceSpectra}{the reference spectra when not derived from the current data, defaults to code{NULL} when \code{referenceMethod} is used 
+\item{referenceSpectra}{the reference spectra when not derived from the current data, defaults to \code{NULL} when \code{referenceMethod} is used 
 to derive the reference spectra from the data}
 
 \item{referenceMethod}{name of the function used to derive the spectra over the data measurements, defaults to \code{"mean"} when the average spectra in the 

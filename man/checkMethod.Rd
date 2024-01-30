@@ -9,7 +9,7 @@ checkMethod(method, allowedMethods)
 \arguments{
 \item{method}{character of method to check}
 
-\item{allowedMethod}{character vector of allowed method}
+\item{allowedMethods}{character vector of allowed method}
 }
 \value{
 nothing just stop if method not allowed
